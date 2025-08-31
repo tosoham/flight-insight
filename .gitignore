@@ -35,7 +35,7 @@ wheels/
 .installed.cfg
 *.egg
 *.whl
-
+node_modules/
 # --- IDEs and Editors ---
 # User-specific settings for popular editors.
 .idea/
@@ -57,7 +57,6 @@ coverage.xml
 # --- Environment Variables ---
 # Never commit secrets or environment-specific configurations.
 .env
-.env.*
 secrets.yml
 secrets.toml
 config.ini
