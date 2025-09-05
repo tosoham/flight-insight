@@ -9,7 +9,7 @@ import numpy as np
 print("Initializing H2O...")
 h2o.init(max_mem_size='14G')  # Adjust based on your available RAM
 
-df = pd.read_parquet("data/flights_processed.parquet")
+df = pd.read_parquet("data/flights_processed_no_geo.parquet")
 
 # Convert your pandas DataFrame to H2O Frame
 print("Converting data to H2O format...")
@@ -292,5 +292,5 @@ print("SAVING BEST MODEL")
 print("="*50)
 
 # Save the model in a local directory
-model_path = h2o.save_model(model=best_model, path="saved_models", force=True)
+model_path = h2o.save_model(model=best_model, path="saved_models_no_geo", force=True)
 print(f"Best model '{best_model_name}' saved at: {model_path}")
