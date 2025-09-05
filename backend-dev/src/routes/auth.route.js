@@ -18,4 +18,9 @@ router.get("/airlines", authenticate, authorizeRole("airline"), (req, res) => {
   res.json({ msg: "Airline-only dashboard" });
 });
 
+
+router.get("/me", authenticate, (req, res) => {
+  res.json({ user: req.user });
+});
+
 export default router;

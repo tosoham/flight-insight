@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { AIRLINE_ACCOUNTS } from "../config/airlineAllowlist.js";
+import { AIRLINE_ALLOWLIST } from "../config/airlineAllowlist.js";
 import { User } from "../models/user.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
@@ -61,27 +61,39 @@ export const login = async (req, res) => {
     }
     email = email.toLowerCase().trim();
 
-    // 1) Hardcoded airline/admin path
-    //    Option A (quick & dirty): plain-text compare
-    if (AIRLINE_ACCOUNTS[email] && password === AIRLINE_ACCOUNTS[email]) {
-      const token = jwt.sign({ id: email, role: "airline" }, JWT_SECRET, { expiresIn: "1h" });
+    // ---------- 1) HARD-CODED AIRLINE LOGIN ----------
+    if (AIRLINE_ALLOWLIST[email] && password === AIRLINE_ALLOWLIST[email].password) {
+      const acct = AIRLINE_ALLOWLIST[email];
+
+      const payload = {
+        id: email,
+        role: "airline",
+        airlineId: acct.airlineId,
+        airlineName: acct.airlineName,
+        plan: acct.plan,                         // "free" | "subscribed"
+        subscribed: acct.plan === "subscribed",  // boolean for quick checks
+      };
+
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
       res.cookie("jwt", token, {
         httpOnly: true,
         secure: IS_PROD,
         sameSite: "strict",
         maxAge: ONE_HOUR_MS,
       });
-      return res.json({ message: "Login successful", role: "airline" });
+
+      return res.json({ message: "Login successful", user: payload, token });
     }
 
-    // 2) Normal DB user path (passenger)
+    // ---------- 2) NORMAL DB USER (PASSENGER) ----------
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
+    const payload = { id: user._id, role: user.role || "passenger" };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: IS_PROD,
@@ -89,7 +101,7 @@ export const login = async (req, res) => {
       maxAge: ONE_HOUR_MS,
     });
 
-    return res.json({ message: "Login successful", role: user.role });
+    return res.json({ message: "Login successful", user: payload, token });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Server error" });
