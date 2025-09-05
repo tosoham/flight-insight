@@ -536,6 +536,68 @@ function AnimatedCounter({ value, duration = 2000, suffix = "" }) {
 export default function Airlines() {
   const [activeTab, setActiveTab] = useState("overview");
   const [user, setUser] = useState(null);
+  // 🔹 Form state
+  const [formData, setFormData] = useState({
+    date: "",
+    airline: "",
+    flight_number: "",
+    tail_number: "",
+    origin_airport: "",
+    destination_airport: "",
+    scheduled_departure: "",
+    departure_time: "",
+    departure_delay: "",
+    taxi_out: "",
+    wheels_off: "",
+    scheduled_time: "",
+    elapsed_time: "",
+    air_time: "",
+    distance: "",
+    wheels_on: "",
+    taxi_in: "",
+    scheduled_arrival: "",
+    arrival_time: "",
+    air_system_delay: "",
+    security_delay: "",
+    airline_delay: "",
+    late_aircraft_delay: "",
+    weather_delay: "",
+    origin_lat: "",
+    origin_lon: "",
+    dest_lat: "",
+    dest_lon: "",
+  });
+
+  const [prediction, setPrediction] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // 🔹 Handle form updates (null/NaN → 0)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value || "0" }));
+  };
+
+  // 🔹 Submit handler
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setPrediction(null);
+    try {
+      const res = await fetch(`${API_URL}/api/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      setPrediction(data?.prediction || "No result");
+    } catch (err) {
+      console.error("Prediction error", err);
+      setPrediction("Error occurred, try again");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isSubscribed = !!user?.subscribed; // plan-aware gating
 
   useEffect(() => {
@@ -918,56 +980,137 @@ export default function Airlines() {
 
         {/* PREDICTION TAB */}
         {activeTab === "prediction" && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h4 className="text-xl font-bold text-gray-800 mb-6">Hourly Prediction vs Actual Performance</h4>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={predictiveData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="predicted" 
-                    stroke="#3b82f6" 
-                    strokeWidth={3}
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-                    name="AI Predicted"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="actual" 
-                    stroke="#22c55e" 
-                    strokeWidth={3}
-                    strokeDasharray="5 5"
-                    dot={{ fill: '#22c55e', strokeWidth: 2, r: 6 }}
-                    name="Actual Performance"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-2xl shadow-lg">
+            <h4 className="text-xl font-bold text-gray-800 mb-6">AI Delay Prediction</h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl text-white">
-                <h5 className="font-bold mb-2">Prediction Accuracy</h5>
-                <p className="text-3xl font-bold"><AnimatedCounter value={94} suffix="%" /></p>
-                <p className="text-blue-100 text-sm">Last 30 days average</p>
+            <form onSubmit={handleSubmit} className="space-y-8">
+
+              {/* Basic Flight Info */}
+              <div>
+                <h5 className="text-lg font-semibold text-gray-700 mb-4">Basic Flight Info</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="text" name="date" placeholder="dd/mm/yyyy" value={formData.date} onChange={handleChange} className="border p-2 rounded" />
+
+                  {/* Airline dropdown */}
+                  <select name="airline" value={formData.airline} onChange={handleChange} className="border p-2 rounded">
+                    <option value="">Select Airline</option>
+                    <option value="AA">American Airlines</option>
+                    <option value="DL">Delta</option>
+                    <option value="UA">United</option>
+                    <option value="WN">Southwest</option>
+                  </select>
+
+                  <select name="airline" value={formData.tail_number} onChange={handleChange} className="border p-2 rounded">
+                    <option value="">Select Tail Number</option>
+                    <option value="AA">American Airlines</option>
+                    <option value="DL">Delta</option>
+                    <option value="UA">United</option>
+                    <option value="WN">Southwest</option>
+                  </select>
+
+                  <input type="text" name="flight_number" placeholder="Flight Number" value={formData.flight_number} onChange={handleChange} className="border p-2 rounded" />
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-2xl text-white">
-                <h5 className="font-bold mb-2">Early Warning</h5>
-                <p className="text-3xl font-bold"><AnimatedCounter value={87} suffix="%" /></p>
-                <p className="text-green-100 text-sm">Delays predicted 2h+ ahead</p>
+
+              {/* Departure Details */}
+              <div>
+                <h5 className="text-lg font-semibold text-gray-700 mb-4">Departure Details</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* Origin Airport dropdown */}
+                  <select name="origin_airport" value={formData.origin_airport} onChange={handleChange} className="border p-2 rounded">
+                    <option value="">Origin Airport</option>
+                    <option value="JFK">JFK - New York</option>
+                    <option value="LAX">LAX - Los Angeles</option>
+                    <option value="ORD">ORD - Chicago</option>
+                  </select>
+
+                  <input type="text" name="scheduled_departure" placeholder="Scheduled Departure" value={formData.scheduled_departure} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="departure_time" placeholder="Departure Time" value={formData.departure_time} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="departure_delay" placeholder="Departure Delay" value={formData.departure_delay} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="taxi_out" placeholder="Taxi Out" value={formData.taxi_out} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="wheels_off" placeholder="Wheels Off" value={formData.wheels_off} onChange={handleChange} className="border p-2 rounded" />
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-2xl text-white">
-                <h5 className="font-bold mb-2">Cost Savings</h5>
-                <p className="text-3xl font-bold">$<AnimatedCounter value={2.4} suffix="M" /></p>
-                <p className="text-purple-100 text-sm">Estimated monthly savings</p>
+
+              {/* Arrival Details */}
+              <div>
+                <h5 className="text-lg font-semibold text-gray-700 mb-4">Arrival Details</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* Destination Airport dropdown */}
+                  <select name="destination_airport" value={formData.destination_airport} onChange={handleChange} className="border p-2 rounded">
+                    <option value="">Destination Airport</option>
+                    <option value="ATL">ATL - Atlanta</option>
+                    <option value="SFO">SFO - San Francisco</option>
+                    <option value="MIA">MIA - Miami</option>
+                  </select>
+
+                  <input type="text" name="scheduled_arrival" placeholder="Scheduled Arrival" value={formData.scheduled_arrival} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="arrival_time" placeholder="Arrival Time" value={formData.arrival_time} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="scheduled_time" placeholder="Scheduled Time" value={formData.scheduled_time} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="elapsed_time" placeholder="Elapsed Time" value={formData.elapsed_time} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="air_time" placeholder="Air Time" value={formData.air_time} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="distance" placeholder="Distance" value={formData.distance} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="wheels_on" placeholder="Wheels On" value={formData.wheels_on} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="taxi_in" placeholder="Taxi In" value={formData.taxi_in} onChange={handleChange} className="border p-2 rounded" />
+                </div>
               </div>
-            </div>
+
+              {/* Delay Information */}
+              <div>
+                <h5 className="text-lg font-semibold text-gray-700 mb-4">Delay Information</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="text" name="air_system_delay" placeholder="Air System Delay" value={formData.air_system_delay} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="security_delay" placeholder="Security Delay" value={formData.security_delay} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="airline_delay" placeholder="Airline Delay" value={formData.airline_delay} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="late_aircraft_delay" placeholder="Late Aircraft Delay" value={formData.late_aircraft_delay} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="weather_delay" placeholder="Weather Delay" value={formData.weather_delay} onChange={handleChange} className="border p-2 rounded" />
+                </div>
+              </div>
+
+              {/* Geolocation */}
+              <div>
+                <h5 className="text-lg font-semibold text-gray-700 mb-4">Geolocation</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="text" name="origin_lat" placeholder="Origin Latitude" value={formData.origin_lat} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="origin_lon" placeholder="Origin Longitude" value={formData.origin_lon} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="dest_lat" placeholder="Destination Latitude" value={formData.dest_lat} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="dest_lon" placeholder="Destination Longitude" value={formData.dest_lon} onChange={handleChange} className="border p-2 rounded" />
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div class="flex justify-center">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-64 py-2 rounded transition ${
+                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                {loading ? "Predicting..." : "Get Prediction"}
+              </button>
+              </div>
+            </form>
+
+            {/* Loader / Result */}
+            {loading && (
+              <div className="mt-6 flex justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+
+            {!loading && prediction && (
+              <div className="mt-6 p-4 bg-blue-50 border rounded-lg text-center">
+                <p className="text-lg font-semibold text-gray-800">Predicted Delay: {prediction}</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+      )}
+
 
         {/* ===== SCHEDULE TAB ===== */}
         {activeTab === "schedule" && (
