@@ -7,11 +7,10 @@ import numpy as np
 
 # Initialize H2O cluster
 print("Initializing H2O...")
-h2o.init(max_mem_size='15G')  # Adjust based on your available RAM
+h2o.init(max_mem_size='15G')  
 
 df = pd.read_parquet("data/flights_preprocessed_no_delay.parquet")
 
-# Convert your pandas DataFrame to H2O Frame
 print("Converting data to H2O format...")
 h2o_df = h2o.H2OFrame(df)
 
@@ -19,7 +18,7 @@ print(f"H2O DataFrame shape: {h2o_df.shape}")
 print("H2O DataFrame info:")
 print(h2o_df.describe())
 
-# Set target and feature columns
+
 target = "ARRIVAL_DELAY" 
 features = h2o_df.columns
 features.remove(target)
@@ -27,13 +26,12 @@ features.remove(target)
 print(f"Target: {target}")
 print(f"Number of features: {len(features)}")
 
-# Split the data (H2O handles this very efficiently)
 print("Splitting data...")
 train, test = h2o_df.split_frame(ratios=[0.9], seed=42)
 print(f"Training set shape: {train.shape}")
 print(f"Test set shape: {test.shape}")
 
-# Function to calculate adjusted R²
+
 def calculate_adjusted_r2(r2, n_samples, n_features):
     """
     Calculate adjusted R² given R², number of samples, and number of features
@@ -41,7 +39,7 @@ def calculate_adjusted_r2(r2, n_samples, n_features):
     where n = number of samples, p = number of features
     """
     if r2 < 0:
-        return r2  # If R² is negative, adjusted R² will be even more negative
+        return r2  
     
     adjusted_r2 = 1 - (1 - r2) * (n_samples - 1) / (n_samples - n_features - 1)
     return adjusted_r2
@@ -68,7 +66,7 @@ rf = H2ORandomForestEstimator(
 # Train the model
 rf.train(x=features, y=target, training_frame=train)
 
-# Calculate adjusted R² for cross-validation
+
 rf_cv_r2 = rf.r2(xval=True)
 rf_cv_adj_r2 = calculate_adjusted_r2(rf_cv_r2, train.shape[0], len(features))
 
@@ -126,8 +124,8 @@ try:
         learn_rate=0.1,
         sample_rate=0.8,
         col_sample_rate=0.8,
-        reg_alpha=0.0,               # L1 regularization
-        reg_lambda=1.0,              # L2 regularization
+        reg_alpha=0.0,               
+        reg_lambda=1.0,              
         seed=42,
         nfolds=5,
         fold_assignment="Modulo",
