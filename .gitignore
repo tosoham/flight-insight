@@ -13,6 +13,7 @@ pip-selfcheck.json
 # --- Python Cache and Bytecode Files ---
 # These are generated automatically by the Python interpreter.
 __pycache__/
+*/__pycache__/
 *.pyc
 *.pyo
 *.pyd
