@@ -1030,7 +1030,7 @@ export default function Airlines() {
                   <input type="text" name="departure_time" placeholder="Departure Time" value={formData.departure_time} onChange={handleChange} className="border p-2 rounded" />
                   <input type="text" name="departure_delay" placeholder="Departure Delay" value={formData.departure_delay} onChange={handleChange} className="border p-2 rounded" />
                   <input type="text" name="taxi_out" placeholder="Taxi Out" value={formData.taxi_out} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="wheels_off" placeholder="Wheels Off" value={formData.wheels_off} onChange={handleChange} className="border p-2 rounded" />
+                  {/* <input type="text" name="wheels_off" placeholder="Wheels Off" value={formData.wheels_off} onChange={handleChange} className="border p-2 rounded" /> */}
                 </div>
               </div>
 
@@ -1048,18 +1048,18 @@ export default function Airlines() {
                   </select>
 
                   <input type="text" name="scheduled_arrival" placeholder="Scheduled Arrival" value={formData.scheduled_arrival} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="arrival_time" placeholder="Arrival Time" value={formData.arrival_time} onChange={handleChange} className="border p-2 rounded" />
+                  {/* <input type="text" name="arrival_time" placeholder="Arrival Time" value={formData.arrival_time} onChange={handleChange} className="border p-2 rounded" /> */}
                   <input type="text" name="scheduled_time" placeholder="Scheduled Time" value={formData.scheduled_time} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="elapsed_time" placeholder="Elapsed Time" value={formData.elapsed_time} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="air_time" placeholder="Air Time" value={formData.air_time} onChange={handleChange} className="border p-2 rounded" />
+                  {/* <input type="text" name="elapsed_time" placeholder="Elapsed Time" value={formData.elapsed_time} onChange={handleChange} className="border p-2 rounded" /> */}
+                  {/* <input type="text" name="air_time" placeholder="Air Time" value={formData.air_time} onChange={handleChange} className="border p-2 rounded" /> */}
                   <input type="text" name="distance" placeholder="Distance" value={formData.distance} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="wheels_on" placeholder="Wheels On" value={formData.wheels_on} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="taxi_in" placeholder="Taxi In" value={formData.taxi_in} onChange={handleChange} className="border p-2 rounded" />
+                  {/* <input type="text" name="wheels_on" placeholder="Wheels On" value={formData.wheels_on} onChange={handleChange} className="border p-2 rounded" /> */}
+                  {/* <input type="text" name="taxi_in" placeholder="Taxi In" value={formData.taxi_in} onChange={handleChange} className="border p-2 rounded" /> */}
                 </div>
               </div>
 
               {/* Delay Information */}
-              <div>
+              {/* <div>
                 <h5 className="text-lg font-semibold text-gray-700 mb-4">Delay Information</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" name="air_system_delay" placeholder="Air System Delay" value={formData.air_system_delay} onChange={handleChange} className="border p-2 rounded" />
@@ -1068,10 +1068,10 @@ export default function Airlines() {
                   <input type="text" name="late_aircraft_delay" placeholder="Late Aircraft Delay" value={formData.late_aircraft_delay} onChange={handleChange} className="border p-2 rounded" />
                   <input type="text" name="weather_delay" placeholder="Weather Delay" value={formData.weather_delay} onChange={handleChange} className="border p-2 rounded" />
                 </div>
-              </div>
+              </div> */}
 
               {/* Geolocation */}
-              <div>
+              {/* <div>
                 <h5 className="text-lg font-semibold text-gray-700 mb-4">Geolocation</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" name="origin_lat" placeholder="Origin Latitude" value={formData.origin_lat} onChange={handleChange} className="border p-2 rounded" />
@@ -1079,7 +1079,7 @@ export default function Airlines() {
                   <input type="text" name="dest_lat" placeholder="Destination Latitude" value={formData.dest_lat} onChange={handleChange} className="border p-2 rounded" />
                   <input type="text" name="dest_lon" placeholder="Destination Longitude" value={formData.dest_lon} onChange={handleChange} className="border p-2 rounded" />
                 </div>
-              </div>
+              </div> */}
 
               {/* Submit Button */}
               <div class="flex justify-center">
