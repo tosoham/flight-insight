@@ -105,6 +105,35 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 import httpx
 import requests
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import h2o
+import pandas as pd
+
+# Start H2O
+h2o.init()
+
+# Load model (adjust path accordingly)
+model_path = "..\ml_models\XGBoost_model_python_1757076136863_1"
+model = h2o.load_model(model_path)
+
+class FlightFeatures(BaseModel):
+    YEAR: int
+    MONTH: int
+    DAY: int
+    DAY_OF_WEEK: int
+    AIRLINE: str
+    FLIGHT_NUMBER: int
+    TAIL_NUMBER: str
+    ORIGIN_AIRPORT: str
+    DESTINATION_AIRPORT: str
+    SCHEDULED_DEPARTURE: int
+    DEPARTURE_TIME: int
+    DEPARTURE_DELAY: int
+    TAXI_OUT: int
+    SCHEDULED_TIME: int
+    DISTANCE: int
+    SCHEDULED_ARRIVAL: int
 
 DATABASE_URL = "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb"
 
@@ -134,6 +163,31 @@ async def fetch_flight(flight_number: str):
 
 AVIATIONSTACK_API_KEY = "c68947135ac031af2d89c0419904f0fb"
 BASE_URL = "http://api.aviationstack.com/v1/flights"
+
+# CORS setup (so frontend can call backend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For dev: allow all, restrict later
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def home():
+    return {"message": "Backend is running!"}
+
+@app.post("/predict")
+def predict(features: FlightFeatures):
+    data = pd.DataFrame([features.model_dump()])
+    h2o_data = h2o.H2OFrame(data)
+    
+    # Run prediction
+    prediction = model.predict(h2o_data)
+    predicted_value = float(prediction.as_data_frame().iloc[0, 0])
+    
+    return {"Arrival Delay": predicted_value}
+
 
 
 @app.get("/fetch-flight")

@@ -501,6 +501,7 @@ import {
 import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle } from "lucide-react";
 import FlightScheduleSection from "../components/FlightScheduleSection";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // ---------- helper: get current user from /api/auth/me (JWT cookie) ----------
 async function fetchMe() {
@@ -540,6 +541,7 @@ export default function Airlines() {
   const [formData, setFormData] = useState({
     date: "",
     airline: "",
+    day_of_week: "",
     flight_number: "",
     tail_number: "",
     origin_airport: "",
@@ -548,24 +550,9 @@ export default function Airlines() {
     departure_time: "",
     departure_delay: "",
     taxi_out: "",
-    wheels_off: "",
     scheduled_time: "",
-    elapsed_time: "",
-    air_time: "",
     distance: "",
-    wheels_on: "",
-    taxi_in: "",
     scheduled_arrival: "",
-    arrival_time: "",
-    air_system_delay: "",
-    security_delay: "",
-    airline_delay: "",
-    late_aircraft_delay: "",
-    weather_delay: "",
-    origin_lat: "",
-    origin_lon: "",
-    dest_lat: "",
-    dest_lon: "",
   });
 
   const [prediction, setPrediction] = useState(null);
@@ -579,24 +566,58 @@ export default function Airlines() {
 
   // 🔹 Submit handler
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setPrediction(null);
-    try {
-      const res = await fetch(`${API_URL}/api/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      setPrediction(data?.prediction || "No result");
-    } catch (err) {
-      console.error("Prediction error", err);
-      setPrediction("Error occurred, try again");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setLoading(true);
+  setPrediction(null);
+
+  try {
+    // Parse date (dd/mm/yyyy)
+    const [day, month, year] = (formData.date || "").split("/").map((x) => parseInt(x, 10));
+
+    // Helper to safely parse numbers (NaN → 0)
+    const toInt = (val) => {
+      const num = parseInt(val, 10);
+      return isNaN(num) ? 0 : num;
+    };
+
+    // Build backend payload with UPPERCASE keys
+    const payload = {
+      YEAR: toInt(year),
+      MONTH: toInt(month),
+      DAY: toInt(day),
+      DAY_OF_WEEK: toInt(formData.day_of_week),
+      AIRLINE: formData.airline || "",
+      FLIGHT_NUMBER: toInt(formData.flight_number),
+      TAIL_NUMBER: formData.tail_number || "",
+      ORIGIN_AIRPORT: formData.origin_airport || "",
+      DESTINATION_AIRPORT: formData.destination_airport || "",
+      SCHEDULED_DEPARTURE: toInt(formData.scheduled_departure),
+      DEPARTURE_TIME: toInt(formData.departure_time),
+      DEPARTURE_DELAY: toInt(formData.departure_delay),
+      TAXI_OUT: toInt(formData.taxi_out),
+      SCHEDULED_TIME: toInt(formData.scheduled_time),
+      DISTANCE: toInt(formData.distance),
+      SCHEDULED_ARRIVAL: toInt(formData.scheduled_arrival),
+    };
+
+    // Call backend
+    const res = await fetch(`${BACKEND_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // Handle backend response { "Arrival Delay": value }
+    const data = await res.json();
+    setPrediction(data?.["Arrival Delay"] ?? "No result");
+
+  } catch (err) {
+    console.error("Prediction error", err);
+    setPrediction("Error occurred, try again");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const isSubscribed = !!user?.subscribed; // plan-aware gating
 
@@ -988,22 +1009,22 @@ export default function Airlines() {
 
               {/* Basic Flight Info */}
               <div>
-                <h5 className="text-lg font-semibold text-gray-700 mb-4">Basic Flight Info</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="text" name="date" placeholder="dd/mm/yyyy" value={formData.date} onChange={handleChange} className="border p-2 rounded" />
+                  <input type="text" name="day_of_week" placeholder="Day of week" value={formData.day_of_week} onChange={handleChange} className="border p-2 rounded" />
 
                   {/* Airline dropdown */}
                   <select name="airline" value={formData.airline} onChange={handleChange} className="border p-2 rounded">
                     <option value="">Select Airline</option>
-                    <option value="AA">American Airlines</option>
+                    <option value="AA">AA</option>
                     <option value="DL">Delta</option>
                     <option value="UA">United</option>
                     <option value="WN">Southwest</option>
                   </select>
 
-                  <select name="airline" value={formData.tail_number} onChange={handleChange} className="border p-2 rounded">
+                  <select name="tail_number" value={formData.tail_number} onChange={handleChange} className="border p-2 rounded">
                     <option value="">Select Tail Number</option>
-                    <option value="AA">American Airlines</option>
+                    <option value="AA">AA123</option>
                     <option value="DL">Delta</option>
                     <option value="UA">United</option>
                     <option value="WN">Southwest</option>
@@ -1015,13 +1036,12 @@ export default function Airlines() {
 
               {/* Departure Details */}
               <div>
-                <h5 className="text-lg font-semibold text-gray-700 mb-4">Departure Details</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                   {/* Origin Airport dropdown */}
                   <select name="origin_airport" value={formData.origin_airport} onChange={handleChange} className="border p-2 rounded">
                     <option value="">Origin Airport</option>
-                    <option value="JFK">JFK - New York</option>
+                    <option value="JFK">JFK</option>
                     <option value="LAX">LAX - Los Angeles</option>
                     <option value="ORD">ORD - Chicago</option>
                   </select>
@@ -1036,13 +1056,12 @@ export default function Airlines() {
 
               {/* Arrival Details */}
               <div>
-                <h5 className="text-lg font-semibold text-gray-700 mb-4">Arrival Details</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                   {/* Destination Airport dropdown */}
                   <select name="destination_airport" value={formData.destination_airport} onChange={handleChange} className="border p-2 rounded">
                     <option value="">Destination Airport</option>
-                    <option value="ATL">ATL - Atlanta</option>
+                    <option value="ATL">LAX</option>
                     <option value="SFO">SFO - San Francisco</option>
                     <option value="MIA">MIA - Miami</option>
                   </select>
@@ -1102,11 +1121,21 @@ export default function Airlines() {
               </div>
             )}
 
-            {!loading && prediction && (
-              <div className="mt-6 p-4 bg-blue-50 border rounded-lg text-center">
-                <p className="text-lg font-semibold text-gray-800">Predicted Delay: {prediction}</p>
-              </div>
-            )}
+            {!loading && prediction !== null && (
+            <div
+              className={`mt-6 p-4 border rounded-lg text-center ${
+                prediction <= 15 ? "bg-green-100 border-green-400" : "bg-red-100 border-red-400"
+              }`}
+            >
+              {prediction <= 15 ? (
+                <p className="text-lg font-semibold text-green-800">✅ Flight is on time</p>
+              ) : (
+                <p className="text-lg font-semibold text-red-800">
+                  ⚠️ Flight delayed by {Number(prediction).toFixed(2)} minutes
+                </p>
+              )}
+            </div>
+          )}
           </div>
         </div>
       )}
