@@ -187,14 +187,6 @@ import pandas as pd
 <<<<<<< HEAD:backend_dev/backend-dev/ml_service/app/main.py
 import subprocess
 import tempfile
-import os
-
-
-# Start H2O (for legacy endpoint)
-h2o.init()
-
-# Load model (legacy, not MOJO)
-# model_path = "ml_service/model/XGBoost_model_python_1757147613340_1.zip"
 
 =======
 import os
