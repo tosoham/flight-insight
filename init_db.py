@@ -10,7 +10,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql+asyncpg://postgres:madhurima@localhost:5433/flightdb"
+    "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb"
 )
 
 DEFAULT_DB_URL = DATABASE_URL.replace("/flightdb", "/postgres")  # connect to default db

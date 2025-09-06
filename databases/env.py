@@ -52,7 +52,7 @@ def run_migrations_online():
             with context.begin_transaction():
                 context.run_migrations()
 
-        connectable.run_sync(do_migrations)
+        connectable.run_sync(do_run_migrations)
     else:
         # Fallback: create our own engine if no connection passed
         sqlalchemy_url = config.get_main_option("sqlalchemy.url")
@@ -66,7 +66,7 @@ def run_migrations_online():
 
         async def run():
             async with connectable.connect() as connection:
-                await connection.run_sync(do_migrations)
+                await connection.run_sync(do_run_migrations)
             await connectable.dispose()
 
         asyncio.run(run())

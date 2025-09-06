@@ -109,7 +109,10 @@ from pydantic import BaseModel
 import h2o
 import pandas as pd
 import os
+from databases.models import Flight
+from dotenv import load_dotenv
 
+load_dotenv()
 # Start H2O
 h2o.init()
 
@@ -136,7 +139,7 @@ class FlightFeatures(BaseModel):
     DISTANCE: int
     SCHEDULED_ARRIVAL: int
 
-DATABASE_URL = "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb")
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -205,20 +208,31 @@ def fetch_flight(flight_number: str):
     return data["data"][0]
 
 
+from sqlalchemy import select
+from databases.models import Flight
+
 @app.post("/store-flight/{flight_number}")
 async def store_flight(flight_number: str, db: AsyncSession = Depends(get_db)):
-    url = f"http://api.aviationstack.com/v1/flights?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
+    url = f"{BASE_URL}?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
     data = response.json()
 
     if not data.get("data"):
-        return {"message": f"No data found for {flight_number}"}
+        raise HTTPException(status_code=404, detail=f"No data found for {flight_number}")
 
     flight_info = data["data"][0]
 
-    from databases.models import Flight  
+    # check if flight already exists
+    result = await db.execute(
+        select(Flight).where(Flight.flight_id == flight_info.get("flight", {}).get("iata"))
+    )
+    existing = result.scalars().first()
 
+    if existing:
+        return {"message": "Flight already exists", "flight_id": existing.flight_id}
+
+    # otherwise, insert new
     new_flight = Flight(
         flight_id=flight_info.get("flight", {}).get("iata"),
         flight_number=flight_info.get("flight", {}).get("number"),
@@ -232,6 +246,9 @@ async def store_flight(flight_number: str, db: AsyncSession = Depends(get_db)):
     db.add(new_flight)
     await db.commit()
     await db.refresh(new_flight)
+
+    return {"message": "Flight stored", "flight_id": new_flight.flight_id}
+
 
     """
     new_booking = Booking(
