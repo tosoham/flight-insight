@@ -498,6 +498,7 @@ import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle,
   Navigation, 
   Timer,
   Send,
+  Info,
   CheckCircle, } from "lucide-react";
 import FlightScheduleSection from "../components/FlightScheduleSection";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
@@ -1096,10 +1097,21 @@ const handleChange = (e) => {
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
                         >
                           <option value="">Select Airline</option>
-                          <option value="AA">AA</option>
-                          <option value="DL">DL</option>
                           <option value="UA">United Airlines</option>
-                          <option value="WN">Southwest Airlines</option>
+                            <option value="AA">American Airlines</option>
+                            <option value="US">US Airways</option>
+                            <option value="F9">Frontier Airlines</option>
+                            <option value="B6">JetBlue Airways</option>
+                            <option value="OO">SkyWest Airlines</option>
+                            <option value="AS">Alaska Airlines</option>
+                            <option value="NK">Spirit Airlines</option>
+                            <option value="WN">Southwest Airlines</option>
+                            <option value="DL">Delta Airlines</option>
+                            <option value="EV">Atlantic Southeast</option>
+                            <option value="HA">Hawaiian Airlines</option>
+                            <option value="MQ">American Eagle</option>
+                            <option value="VX">Virgin America</option>
+
                         </select>
                       </div>
 
@@ -1119,6 +1131,9 @@ const handleChange = (e) => {
                           <option value="DL456">DL456</option>
                           <option value="UA789">UA789</option>
                           <option value="WN012">WN012</option>
+                          <option value="N635NK">N635NK</option>
+                          <option value="N927WN">N927WN</option>
+                          <option value="F9123">F9123</option>
                         </select>
                       </div>
 
@@ -1130,7 +1145,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="flight_number" 
-                          placeholder="e.g.,1234" 
+                          placeholder="e.g.,1 to 9855" 
                           value={formData.flight_number} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300" 
@@ -1164,6 +1179,17 @@ const handleChange = (e) => {
                           <option value="JFK">JFK</option>
                           <option value="LAX">LAX</option>
                           <option value="ORD">ORD</option>
+                          <option value="10721">10721</option>
+                          <option value="12016">12016</option>
+                          <option value="12945">12945</option>
+                          <option value="LIH">LIH</option>
+                          <option value="TTN">TTN</option>
+                          <option value="AZO">AZO</option>
+                          <option value="MLU">MLU</option>
+                          <option value="CAE">CAE</option>
+                          <option value="OTH">OTH</option>
+                          <option value="11648">11648</option>
+
                         </select>
                       </div>
 
@@ -1175,7 +1201,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="scheduled_departure" 
-                          placeholder="e.g., 1430" 
+                          placeholder="e.g., 1 to 2359" 
                           value={formData.scheduled_departure} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
@@ -1190,7 +1216,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="departure_time" 
-                          placeholder="e.g., 1445" 
+                          placeholder="e.g range ( 1 - 2400)" 
                           value={formData.departure_time} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
@@ -1205,7 +1231,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="departure_delay" 
-                          placeholder="e.g., 15" 
+                          placeholder="e.g., -82 to 1988" 
                           value={formData.departure_delay} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
@@ -1220,7 +1246,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="taxi_out" 
-                          placeholder="e.g., 20" 
+                          placeholder="e.g ( 1 to 225)" 
                           value={formData.taxi_out} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
@@ -1254,6 +1280,17 @@ const handleChange = (e) => {
                           <option value="ATL">ATL</option>
                           <option value="SFO">SFO</option>
                           <option value="MIA">MIA</option>
+                          <option value="MOB">MOB</option>
+                          <option value="FNT">FNT</option>
+                          <option value="ISN">ISN</option>
+                          <option value="FAY">FAY</option>
+                          <option value="BTV">BTV</option>
+                          <option value="RDD">RDD</option>
+                          <option value="ACV">ACV</option>
+                          <option value="13076">13076</option>
+                          <option value="11150">11150</option>
+                          <option value="11140">11140</option>
+
                         </select>
                       </div>
 
@@ -1265,7 +1302,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="scheduled_arrival" 
-                          placeholder="e.g., 17:30" 
+                          placeholder="e.g range ( 1 - 2400)" 
                           value={formData.scheduled_arrival} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
@@ -1280,7 +1317,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="scheduled_time" 
-                          placeholder="e.g., 180" 
+                          placeholder="e.g., 18 to 718" 
                           value={formData.scheduled_time} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
@@ -1295,7 +1332,7 @@ const handleChange = (e) => {
                         <input 
                           type="text" 
                           name="distance" 
-                          placeholder="e.g., 2475" 
+                          placeholder="e.g., 31,..2475...4983" 
                           value={formData.distance} 
                           onChange={handleChange} 
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
@@ -1342,42 +1379,86 @@ const handleChange = (e) => {
                 )}
 
                 {/* Results */}
+
                 {!loading && prediction !== null && (
-                  <div className="mt-8 animate-fadeIn">
-                    <div
-                      className={`p-6 rounded-2xl border-2 text-center shadow-lg ${
-                        prediction <= 15 
-                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200" 
-                          : "bg-gradient-to-r from-red-50 to-orange-50 border-red-200"
-                      }`}
-                    >
-                      <div className="flex items-center justify-center mb-4">
-                        {prediction <= 15 ? (
-                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-8 h-8 text-green-600" />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                            <AlertTriangle className="w-8 h-8 text-red-600" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      {prediction <= 15 ? (
-                        <div>
-                          <h4 className="text-2xl font-bold text-green-800 mb-2">Flight On Time ✈️</h4>
+                <div className="mt-8 animate-fadeIn">
+                  <div
+                    className={`p-6 rounded-2xl border-2 text-center shadow-lg ${
+                      Math.round(Number(prediction)) < 15
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+                        : Math.round(Number(prediction)) === 15
+                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
+                        : "bg-gradient-to-r from-red-50 to-orange-50 border-red-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center mb-4">
+                      {Math.round(Number(prediction)) < 15 ? (
+                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="w-8 h-8 text-blue-600" />
+                        </div>
+                      ) : Math.round(Number(prediction)) === 15 ? (
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="w-8 h-8 text-green-600" />
                         </div>
                       ) : (
-                        <div>
-                          <h4 className="text-2xl font-bold text-red-800 mb-2">Delay Expected ⚠️</h4>
-                          <p className="text-red-700 text-lg mb-2">
-                            Predicted delay: <span className="font-bold">{Number(prediction).toFixed(0)} minutes</span>
-                          </p>
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                          <AlertTriangle className="w-8 h-8 text-red-600" />
                         </div>
                       )}
                     </div>
+
+                    {/* CASE 1: Flight Early */}
+                    {Math.round(Number(prediction)) < 15 && (
+                      <div>
+                        <h4 className="text-2xl font-bold text-blue-800 mb-2">Flight Early ✈️</h4>
+                        {15 - Math.round(Number(prediction)) > 0 ? (
+                          <p className="text-blue-700 text-lg mb-2">
+                            Before time by{" "}
+                            <span className="font-bold">
+                              {-(Math.round(Number(prediction)))} minutes
+                            </span>
+                          </p>
+                        ) : (
+                          <p className="text-blue-700 text-lg mb-2">
+                            Could vary by <span className="font-bold">±5 minutes</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* CASE 2: Flight On Time */}
+                    {Math.round(Number(prediction)) === 15 && (
+                      <div>
+                        <h4 className="text-2xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
+                          Flight On Time ✈️
+                          <span
+                            className="relative group cursor-pointer"
+                            title="May arrive up to 5 minutes earlier or later"
+                          >
+                            <Info className="w-5 h-5 text-green-600" />
+                          </span>
+                        </h4>
+                        <p className="text-green-700 text-lg mb-2">
+                          Could vary by <span className="font-bold">±5 minutes</span>
+                        </p>
+                      </div>
+                    )}
+
+                    {/* CASE 3: Flight Delayed */}
+                    {Math.round(Number(prediction)) > 15 && (
+                      <div>
+                        <h4 className="text-2xl font-bold text-red-800 mb-2">Delay Expected ⚠️</h4>
+                        <p className="text-red-700 text-lg mb-2">
+                          Predicted delay:{" "}
+                          <span className="font-bold">
+                            {Math.round(Number(prediction))} minutes
+                          </span>
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
               </div>
             </div>
           </div>
