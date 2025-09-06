@@ -108,12 +108,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import h2o
 import pandas as pd
+import os
 
 # Start H2O
 h2o.init()
 
-# Load model (adjust path accordingly)
-model_path = "..\ml_models\XGBoost_model_python_1757076136863_1"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "..", "ml_models", "XGBoost_model_python_1757076136863_1")
 model = h2o.load_model(model_path)
 
 class FlightFeatures(BaseModel):
