@@ -100,8 +100,7 @@ def store_flight(flight_number: str, db: Session = Depends(get_db)):
     }"""
 
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select
 import httpx
 import requests
@@ -139,10 +138,9 @@ DATABASE_URL = "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb"
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
-AsyncSessionLocal = sessionmaker(
-    bind=engine, class_=AsyncSession, expire_on_commit=False
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine, expire_on_commit=False
 )
-
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
