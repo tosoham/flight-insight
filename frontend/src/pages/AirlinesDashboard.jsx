@@ -485,18 +485,11 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
   AreaChart,
   Area,
-   RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
 } from "recharts";
 import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle,
   Calendar,  
@@ -566,10 +559,38 @@ export default function Airlines() {
   const [loading, setLoading] = useState(false);
 
   // 🔹 Handle form updates (null/NaN → 0)
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  // 🔹 Handle form updates with date validation
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  if (name === "date") {
+    // ✅ Allow only digits and slashes while typing
+    if (!/^[0-9/]*$/.test(value)) return;
+
+    // Don't validate if user just typed "/" at the end
+    if (value.endsWith("/")) {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      return;
+    }
+
+    // Split into [dd, mm, yyyy]
+    const parts = value.split("/");
+    let [dd, mm, yyyy] = parts;
+
+    // ✅ Cap values only if present
+    if (dd && parseInt(dd, 10) > 31) dd = "31";
+    if (mm && parseInt(mm, 10) > 12) mm = "12";
+    if (yyyy && yyyy.length > 4) yyyy = yyyy.slice(0, 4);
+
+    // ✅ Rebuild formatted value
+    const formatted = [dd, mm, yyyy].filter(Boolean).join("/");
+
+    setFormData((prev) => ({ ...prev, [name]: formatted }));
+  } else {
     setFormData((prev) => ({ ...prev, [name]: value || "0" }));
-  };
+  }
+};
+
 
   // 🔹 Submit handler
   const handleSubmit = async (e) => {
