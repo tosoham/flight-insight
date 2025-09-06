@@ -1,0 +1,85 @@
+Initializing H2O...
+Checking whether there is an H2O instance running at http://localhost:54321..... not found.
+Attempting to start a local H2O server...
+  Java Version: openjdk version "21.0.8" 2025-07-15; OpenJDK Runtime Environment (Red_Hat-21.0.8.0.9-1) (build 21.0.8+9); OpenJDK 64-Bit Server VM (Red_Hat-21.0.8.0.9-1) (build 21.0.8+9, mixed mode, sharing)
+  Starting server from /home/nemo/.conda/envs/npn/lib/python3.12/site-packages/h2o/backend/bin/h2o.jar
+  Ice root: /tmp/tmpcjztz9c_
+  JVM stdout: /tmp/tmpcjztz9c_/h2o_nemo_started_from_python.out
+  JVM stderr: /tmp/tmpcjztz9c_/h2o_nemo_started_from_python.err
+  Server is running at http://127.0.0.1:54321
+Connecting to H2O server at http://127.0.0.1:54321 ... successful.
+Warning: Your H2O cluster version is (5 months and 9 days) old.  There may be a newer version available.
+Please download and install the latest version from: https://h2o-release.s3.amazonaws.com/h2o/latest_stable.html
+--------------------------  -----------------------------
+H2O_cluster_uptime:         00 secs
+H2O_cluster_timezone:       Asia/Kolkata
+H2O_data_parsing_timezone:  UTC
+H2O_cluster_version:        3.46.0.7
+H2O_cluster_version_age:    5 months and 9 days
+H2O_cluster_name:           H2O_from_python_nemo_xejfm2
+H2O_cluster_total_nodes:    1
+H2O_cluster_free_memory:    15.98 Gb
+H2O_cluster_total_cores:    16
+H2O_cluster_allowed_cores:  16
+H2O_cluster_status:         locked, healthy
+H2O_connection_url:         http://127.0.0.1:54321
+H2O_connection_proxy:       {"http": null, "https": null}
+H2O_internal_security:      False
+Python_version:             3.12.11 final
+--------------------------  -----------------------------
+Converting data to H2O format...
+Parse progress: |████████████████████████████████████████████████████████████████████████████████████ (done)| 100%
+Features: ['MONTH', 'DAY', 'DAY_OF_WEEK', 'AIRLINE', 'FLIGHT_NUMBER', 'TAIL_NUMBER', 'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 'SCHEDULED_DEPARTURE', 'DEPARTURE_TIME', 'DEPARTURE_DELAY', 'TAXI_OUT', 'SCHEDULED_TIME', 'DISTANCE', 'SCHEDULED_ARRIVAL', 'ARRIVAL_DELAY', 'is_holiday', 'is_redeye', 'DEP_TIME_DIFF', 'ROUTE', 'ROUTE_AVG_ARR_DELAY', 'AIRLINE_AVG_ARR_DELAY', 'FLIGHT_AVG_ARR_DELAY', 'is_weekend', 'DISTANCE_BUCKET']
+Training XGBoost with 5-fold CV...
+/home/nemo/.conda/envs/npn/lib/python3.12/site-packages/h2o/estimators/estimator_base.py:192: RuntimeWarning: early stopping is enabled but neither score_tree_interval or score_each_iteration are defined. Early stopping will not be reproducible!
+  warnings.warn(mesg["message"], RuntimeWarning)
+xgboost Model Build progress: |██████████████████████████████████████████████████████████████████████ (done)| 100%
+
+=== XGBoost Cross-Validation Performance ===
+CV R²         : 0.9360
+CV Adjusted R²: 0.9360
+CV RMSE       : 10.0656
+CV MAE        : 6.6665
+
+=== XGBoost Test Set Performance ===
+Test R²         : 0.9401
+Test Adjusted R²: 0.9400
+Test RMSE       : 9.9017
+Test MAE        : 6.6651
+
+==================================================
+TOP 10 FEATURE IMPORTANCE
+==================================================
+           variable  relative_importance  scaled_importance  percentage
+    DEPARTURE_DELAY         2.389682e+10           1.000000    0.745527
+      DEP_TIME_DIFF         5.901747e+09           0.246968    0.184121
+           TAXI_OUT         1.151086e+09           0.048169    0.035911
+     DEPARTURE_TIME         2.647869e+08           0.011080    0.008261
+     SCHEDULED_TIME         1.869758e+08           0.007824    0.005833
+SCHEDULED_DEPARTURE         1.457131e+08           0.006098    0.004546
+           DISTANCE         5.927041e+07           0.002480    0.001849
+ ORIGIN_AIRPORT.LGA         4.125272e+07           0.001726    0.001287
+ ORIGIN_AIRPORT.JFK         3.966241e+07           0.001660    0.001237
+  SCHEDULED_ARRIVAL         3.839328e+07           0.001607    0.001198
+
+Saving XGBoost model...
+✅ XGBoost model saved at: /home/nemo/npn/flight-insight/notebooks/saved_models/XGBoost_model_python_1757147613340_1
+xgboost prediction progress: |███████████████████████████████████████████████████████████████████████ (done)| 100%
+
+Sample predictions:
+/home/nemo/.conda/envs/npn/lib/python3.12/site-packages/h2o/frame.py:1983: H2ODependencyWarning: Converting H2O frame to pandas dataframe using single-thread.  For faster conversion using multi-thread, install polars and pyarrow and use it as pandas_df = h2o_df.as_data_frame(use_multi_thread=True)
+
+  warnings.warn("Converting H2O frame to pandas dataframe using single-thread.  For faster conversion using"
+     predict
+0 -10.877098
+1 -13.022923
+2  -9.222788
+3   1.387424
+4 -15.557777
+5  10.537393
+6   6.941749
+7 -12.817955
+8   1.047569
+9 -17.912725
+Closing connection _sid_af8c at exit
+H2O session _sid_af8c closed.

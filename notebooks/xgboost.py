@@ -7,7 +7,7 @@ print("Initializing H2O...")
 h2o.init(max_mem_size='16G')  # Adjust memory if needed
 
 # Load dataset
-df = pd.read_parquet("data/flights_preprocessed_no_delay.parquet")
+df = pd.read_parquet("data/flights_processed_with_extra_features.parquet")
 
 # Convert pandas DataFrame to H2O Frame
 print("Converting data to H2O format...")
