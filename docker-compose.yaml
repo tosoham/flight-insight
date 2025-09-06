@@ -22,6 +22,28 @@ services:
       - "3000:80"
     environment:
       - VITE_BACKEND_URL=http://localhost:8000
+    depends_on:
+      - db
+  node-backend:
+    build:
+      context: ./backend_dev
+      dockerfile: Dockerfile
+    ports:
+      - "3001:80"
+    env_file:
+      - ./.env
+    depends_on:
+      - ml-service
+      - frontend
+
+  ml-service:
+    build:
+      context: ./backend_dev/ml_service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
 
 volumes:
   postgres_data:

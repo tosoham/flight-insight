@@ -12,7 +12,7 @@ def preprocess_to_h2o(df: pd.DataFrame) -> H2OFrame:
     # ------------------------------
     # 1. Holiday feature
     df["date"] = pd.to_datetime(df[["YEAR", "MONTH", "DAY"]])
-    us_holidays = holidays.US()
+    us_holidays = holidays.country_holidays('US')
     df["is_holiday"] = df["date"].apply(lambda x: 1 if x in us_holidays else 0)
     df = df.drop(columns=["date"])
 
@@ -184,14 +184,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import h2o
 import pandas as pd
-<<<<<<< HEAD:backend_dev/backend-dev/ml_service/app/main.py
-import subprocess
-import tempfile
-
-=======
 import os
 from databases.models import Flight
 from dotenv import load_dotenv
+import tempfile
+import subprocess
 
 load_dotenv()
 # Start H2O
@@ -199,9 +196,6 @@ h2o.init()
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "..", "ml_models", "XGBoost_model_python_1757076136863_1")
-model = h2o.load_model(model_path)
->>>>>>> c163dc07221d5c63141ecdd8eee19dfcb24ee5d5:backend/app/main.py
 
 class FlightFeatures(BaseModel):
     YEAR: int
