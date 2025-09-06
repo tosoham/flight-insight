@@ -52,7 +52,7 @@ def run_migrations_online():
             with context.begin_transaction():
                 context.run_migrations()
 
-        connectable.run_sync(do_run_migrations)
+        connectable.run_sync(do_migrations)
     else:
         # Fallback: create our own engine if no connection passed
         sqlalchemy_url = config.get_main_option("sqlalchemy.url")
