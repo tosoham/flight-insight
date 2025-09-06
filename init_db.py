@@ -8,20 +8,42 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb"
+    "postgresql+asyncpg://postgres:madhurima@localhost:5433/flightdb"
 )
 
+DEFAULT_DB_URL = DATABASE_URL.replace("/flightdb", "/postgres")  # connect to default db
 ALEMBIC_INI_PATH = os.path.join(os.path.dirname(__file__), "alembic.ini")
 
+
+async def ensure_database_exists():
+    """Create flightdb if it does not exist."""
+    engine = create_async_engine(DEFAULT_DB_URL, isolation_level="AUTOCOMMIT")
+    async with engine.connect() as conn:
+        from sqlalchemy import text
+        result = await conn.execute(
+            text("SELECT 1 FROM pg_database WHERE datname='flightdb'")
+        )
+        exists = result.scalar()
+        if not exists:
+            print("[INFO] Creating database flightdb...")
+            from sqlalchemy import text
+            await conn.execute(text('CREATE DATABASE "flightdb";'))
+        else:
+            print("[INFO] Database flightdb already exists ✅")
+    await engine.dispose()
+
+
 async def init_db():
-    """Initialize database and run Alembic migrations."""
+    """Ensure DB exists, test connection, and run Alembic migrations."""
     print(f"[INFO] Using DATABASE_URL={DATABASE_URL}")
 
-    engine = create_async_engine(DATABASE_URL, echo=True)
+    # Step 1: Ensure DB exists
+    await ensure_database_exists()
 
+    # Step 2: Test connection to target DB
+    engine = create_async_engine(DATABASE_URL, echo=True)
     try:
         async with engine.begin() as conn:
             await conn.run_sync(lambda c: None)  # simple test query
@@ -30,14 +52,17 @@ async def init_db():
         print("[ERROR] Could not connect to DB ❌:", e)
         return
 
-    # Run Alembic migrations
+    # Step 3: Run Alembic migrations
     print("[INFO] Running Alembic migrations...")
     alembic_cfg = Config(ALEMBIC_INI_PATH)
-    alembic_cfg.set_main_option("sqlalchemy.url", DATABASE_URL)
-    command.upgrade(alembic_cfg, "head")
+    async with engine.begin() as conn:
+        alembic_cfg.attributes["connection"] = conn
+        command.upgrade(alembic_cfg, "head")
 
+    
     await engine.dispose()
     print("[INFO] Database initialized successfully 🎉")
+
 
 if __name__ == "__main__":
     asyncio.run(init_db())
