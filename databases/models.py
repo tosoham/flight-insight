@@ -5,7 +5,8 @@ from sqlalchemy import (
     Date,
     DateTime,
     DECIMAL,
-    ForeignKey
+    ForeignKey,
+    String
 )
 from sqlalchemy.orm import relationship, declarative_base
 
@@ -30,7 +31,7 @@ class Customer(Base):
 class Flight(Base):
     __tablename__ = "flights"
 
-    flight_id = Column(Integer, primary_key=True, index=True)
+    flight_id = Column(String, primary_key=True, index=True)
     flight_number = Column(VARCHAR(20), nullable=False, index=True)
     airline = Column(VARCHAR(100), nullable=False)
     departure_airport = Column(VARCHAR(100), nullable=False)
@@ -51,11 +52,9 @@ class Booking(Base):
     booking_id = Column(Integer, primary_key=True, index=True)
     booking_reference = Column(VARCHAR(50), unique=True, nullable=False, index=True)
     customer_id = Column(Integer, ForeignKey("customers.customer_id", ondelete="CASCADE"), nullable=False)
-    flight_id = Column(Integer, ForeignKey("flights.flight_id", ondelete="CASCADE"), nullable=False)
+    flight_id = Column(String, ForeignKey("flights.flight_id", ondelete="CASCADE"), nullable=False)
     seat_class = Column(VARCHAR(20))  # Economy, Business, First
     ticket_price = Column(DECIMAL(10, 2))
-    #delay_minutes = Column(Integer)
-    #delay_status = Column(VARCHAR(50))  # On-Time, Delayed, Cancelled
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
 

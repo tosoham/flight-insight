@@ -184,6 +184,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import h2o
 import pandas as pd
+<<<<<<< HEAD:backend_dev/backend-dev/ml_service/app/main.py
 import subprocess
 import tempfile
 import os
@@ -195,6 +196,20 @@ h2o.init()
 # Load model (legacy, not MOJO)
 # model_path = "ml_service/model/XGBoost_model_python_1757147613340_1.zip"
 
+=======
+import os
+from databases.models import Flight
+from dotenv import load_dotenv
+
+load_dotenv()
+# Start H2O
+h2o.init()
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "..", "ml_models", "XGBoost_model_python_1757076136863_1")
+model = h2o.load_model(model_path)
+>>>>>>> c163dc07221d5c63141ecdd8eee19dfcb24ee5d5:backend/app/main.py
 
 class FlightFeatures(BaseModel):
     YEAR: int
@@ -213,7 +228,7 @@ class FlightFeatures(BaseModel):
     ORIGIN_AIRPORT: str
     DESTINATION_AIRPORT: str
 
-DATABASE_URL = "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:madhurima@localhost:5432/flightdb")
 
 engine = create_async_engine(DATABASE_URL, echo=True, future=True)
 
@@ -347,20 +362,31 @@ def fetch_flight(flight_number: str):
     return data["data"][0]
 
 
+from sqlalchemy import select
+from databases.models import Flight
+
 @app.post("/store-flight/{flight_number}")
 async def store_flight(flight_number: str, db: AsyncSession = Depends(get_db)):
-    url = f"http://api.aviationstack.com/v1/flights?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
+    url = f"{BASE_URL}?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
     data = response.json()
 
     if not data.get("data"):
-        return {"message": f"No data found for {flight_number}"}
+        raise HTTPException(status_code=404, detail=f"No data found for {flight_number}")
 
     flight_info = data["data"][0]
 
-    from databases.models import Flight  
+    # check if flight already exists
+    result = await db.execute(
+        select(Flight).where(Flight.flight_id == flight_info.get("flight", {}).get("iata"))
+    )
+    existing = result.scalars().first()
 
+    if existing:
+        return {"message": "Flight already exists", "flight_id": existing.flight_id}
+
+    # otherwise, insert new
     new_flight = Flight(
         flight_id=flight_info.get("flight", {}).get("iata"),
         flight_number=flight_info.get("flight", {}).get("number"),
@@ -374,6 +400,9 @@ async def store_flight(flight_number: str, db: AsyncSession = Depends(get_db)):
     db.add(new_flight)
     await db.commit()
     await db.refresh(new_flight)
+
+    return {"message": "Flight stored", "flight_id": new_flight.flight_id}
+
 
     """
     new_booking = Booking(
