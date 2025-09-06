@@ -498,7 +498,14 @@ import {
   PolarRadiusAxis,
   Radar,
 } from "recharts";
-import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle,
+  Calendar,  
+  MapPin, 
+  User, 
+  Navigation, 
+  Timer,
+  Send,
+  CheckCircle, } from "lucide-react";
 import FlightScheduleSection from "../components/FlightScheduleSection";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -722,28 +729,30 @@ export default function Airlines() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 bg-white p-2 rounded-xl shadow-sm">
-          {[
-            { id: "overview", label: "Overview", icon: "📊" },
-            { id: "analysis", label: "Analysis", icon: "🔍" },
-            { id: "prediction", label: "Prediction", icon: "🔮" },
-            { id: "schedule", label: "Schedule", icon: "🗓️" },
-            { id: "insights", label: "Insights", icon: "💡" }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                activeTab === tab.id
-                  ? "bg-blue-600 text-white shadow-md transform scale-105"
-                  : "hover:bg-blue-50 text-gray-600"
-              }`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span>{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex justify-center mb-8">
+        <div className="flex gap-2 bg-white p-2 rounded-xl shadow-sm w-fit">           
+          {[             
+            { id: "overview", label: "Overview", icon: "📊" },             
+            { id: "analysis", label: "Analysis", icon: "🔍" },             
+            { id: "prediction", label: "Prediction", icon: "🔮" },             
+            { id: "schedule", label: "Schedule", icon: "🗓️" },             
+            { id: "insights", label: "Insights", icon: "💡" }           
+          ].map((tab) => (             
+            <button               
+              key={tab.id}               
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${                 
+                activeTab === tab.id                   
+                  ? "bg-blue-600 text-white shadow-md transform scale-105"                   
+                  : "hover:bg-blue-50 text-gray-600"               
+              }`}               
+              onClick={() => setActiveTab(tab.id)}             
+            >               
+              <span>{tab.icon}</span>               
+              {tab.label}             
+            </button>           
+          ))}         
         </div>
+      </div>
 
         {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
@@ -1001,145 +1010,357 @@ export default function Airlines() {
 
         {/* PREDICTION TAB */}
         {activeTab === "prediction" && (
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-lg">
-            <h4 className="text-xl font-bold text-gray-800 mb-6">AI Delay Prediction</h4>
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 p-6">
+            <div className="max-w-4xl mx-auto">
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
+                <div className="space-y-8">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6">AI Flight Delay Prediction</h2>
+                  {/* Flight Information Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">Flight Information</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-blue-500" />
+                          Date
+                        </label>
+                        <input 
+                          type="text" 
+                          name="date" 
+                          placeholder="dd/mm/yyyy" 
+                          value={formData.date} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300" 
+                        />
+                      </div>
 
-              {/* Basic Flight Info */}
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" name="date" placeholder="dd/mm/yyyy" value={formData.date} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="day_of_week" placeholder="Day of week" value={formData.day_of_week} onChange={handleChange} className="border p-2 rounded" />
+                      <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-blue-500" />
+                        Day of Week
+                      </label>
+                      <select 
+                        name="day_of_week" 
+                        value={formData.day_of_week} 
+                        onChange={handleChange} 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
+                      >
+                        <option value="">Select Day of Week</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                      </select>
+                    </div>
 
-                  {/* Airline dropdown */}
-                  <select name="airline" value={formData.airline} onChange={handleChange} className="border p-2 rounded">
-                    <option value="">Select Airline</option>
-                    <option value="AA">AA</option>
-                    <option value="DL">Delta</option>
-                    <option value="UA">United</option>
-                    <option value="WN">Southwest</option>
-                  </select>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Plane className="w-4 h-4 text-blue-500" />
+                          Airline
+                        </label>
+                        <select 
+                          name="airline" 
+                          value={formData.airline} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
+                        >
+                          <option value="">Select Airline</option>
+                          <option value="AA">AA</option>
+                          <option value="DL">DL</option>
+                          <option value="UA">United Airlines</option>
+                          <option value="WN">Southwest Airlines</option>
+                        </select>
+                      </div>
 
-                  <select name="tail_number" value={formData.tail_number} onChange={handleChange} className="border p-2 rounded">
-                    <option value="">Select Tail Number</option>
-                    <option value="AA">AA123</option>
-                    <option value="DL">Delta</option>
-                    <option value="UA">United</option>
-                    <option value="WN">Southwest</option>
-                  </select>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <User className="w-4 h-4 text-blue-500" />
+                          Tail Number
+                        </label>
+                        <select 
+                          name="tail_number" 
+                          value={formData.tail_number} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
+                        >
+                          <option value="">Select Tail Number</option>
+                          <option value="AA123">AA123</option>
+                          <option value="DL456">DL456</option>
+                          <option value="UA789">UA789</option>
+                          <option value="WN012">WN012</option>
+                        </select>
+                      </div>
 
-                  <input type="text" name="flight_number" placeholder="Flight Number" value={formData.flight_number} onChange={handleChange} className="border p-2 rounded" />
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Navigation className="w-4 h-4 text-blue-500" />
+                          Flight Number
+                        </label>
+                        <input 
+                          type="text" 
+                          name="flight_number" 
+                          placeholder="e.g.,1234" 
+                          value={formData.flight_number} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Departure Details Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Send className="w-5 h-5 text-green-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">Departure Details</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-green-500" />
+                          Origin Airport
+                        </label>
+                        <select 
+                          name="origin_airport" 
+                          value={formData.origin_airport} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300"
+                        >
+                          <option value="">Select Origin Airport</option>
+                          <option value="JFK">JFK</option>
+                          <option value="LAX">LAX</option>
+                          <option value="ORD">ORD</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-green-500" />
+                          Scheduled Departure
+                        </label>
+                        <input 
+                          type="text" 
+                          name="scheduled_departure" 
+                          placeholder="e.g., 1430" 
+                          value={formData.scheduled_departure} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-green-500" />
+                          Departure Time
+                        </label>
+                        <input 
+                          type="text" 
+                          name="departure_time" 
+                          placeholder="e.g., 1445" 
+                          value={formData.departure_time} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Timer className="w-4 h-4 text-green-500" />
+                          Departure Delay (mins)
+                        </label>
+                        <input 
+                          type="text" 
+                          name="departure_delay" 
+                          placeholder="e.g., 15" 
+                          value={formData.departure_delay} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Timer className="w-4 h-4 text-green-500" />
+                          Taxi Out (mins)
+                        </label>
+                        <input 
+                          type="text" 
+                          name="taxi_out" 
+                          placeholder="e.g., 20" 
+                          value={formData.taxi_out} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Arrival Details Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <MapPin className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">Arrival Details</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-purple-500" />
+                          Destination Airport
+                        </label>
+                        <select 
+                          name="destination_airport" 
+                          value={formData.destination_airport} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300"
+                        >
+                          <option value="">Select Destination Airport</option>
+                          <option value="ATL">ATL</option>
+                          <option value="SFO">SFO</option>
+                          <option value="MIA">MIA</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-purple-500" />
+                          Scheduled Arrival
+                        </label>
+                        <input 
+                          type="text" 
+                          name="scheduled_arrival" 
+                          placeholder="e.g., 17:30" 
+                          value={formData.scheduled_arrival} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Timer className="w-4 h-4 text-purple-500" />
+                          Scheduled Time (mins)
+                        </label>
+                        <input 
+                          type="text" 
+                          name="scheduled_time" 
+                          placeholder="e.g., 180" 
+                          value={formData.scheduled_time} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Navigation className="w-4 h-4 text-purple-500" />
+                          Distance (miles)
+                        </label>
+                        <input 
+                          type="text" 
+                          name="distance" 
+                          placeholder="e.g., 2475" 
+                          value={formData.distance} 
+                          onChange={handleChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex justify-center pt-6">
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={loading}
+                      className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                        loading 
+                          ? "bg-gray-400 cursor-not-allowed" 
+                          : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
+                      }`}
+                    >
+                      {loading ? (
+                        <>
+                          Analyzing Flight...
+                        </>
+                      ) : (
+                        <>
+                          <Plane className="w-5 h-5" />
+                          Get AI Prediction
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Loader */}
+                {loading && (
+                  <div className="mt-8 flex flex-col items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
+                    <div className="text-center">
+                      <p className="text-lg font-medium text-gray-700 mb-2">Analyzing your flight data...</p>
+                      <p className="text-sm text-gray-500">Our AI is processing multiple factors to predict delays</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results */}
+                {!loading && prediction !== null && (
+                  <div className="mt-8 animate-fadeIn">
+                    <div
+                      className={`p-6 rounded-2xl border-2 text-center shadow-lg ${
+                        prediction <= 15 
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200" 
+                          : "bg-gradient-to-r from-red-50 to-orange-50 border-red-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-center mb-4">
+                        {prediction <= 15 ? (
+                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-8 h-8 text-green-600" />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="w-8 h-8 text-red-600" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {prediction <= 15 ? (
+                        <div>
+                          <h4 className="text-2xl font-bold text-green-800 mb-2">Flight On Time ✈️</h4>
+                        </div>
+                      ) : (
+                        <div>
+                          <h4 className="text-2xl font-bold text-red-800 mb-2">Delay Expected ⚠️</h4>
+                          <p className="text-red-700 text-lg mb-2">
+                            Predicted delay: <span className="font-bold">{Number(prediction).toFixed(0)} minutes</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Departure Details */}
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  {/* Origin Airport dropdown */}
-                  <select name="origin_airport" value={formData.origin_airport} onChange={handleChange} className="border p-2 rounded">
-                    <option value="">Origin Airport</option>
-                    <option value="JFK">JFK</option>
-                    <option value="LAX">LAX - Los Angeles</option>
-                    <option value="ORD">ORD - Chicago</option>
-                  </select>
-
-                  <input type="text" name="scheduled_departure" placeholder="Scheduled Departure" value={formData.scheduled_departure} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="departure_time" placeholder="Departure Time" value={formData.departure_time} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="departure_delay" placeholder="Departure Delay" value={formData.departure_delay} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="taxi_out" placeholder="Taxi Out" value={formData.taxi_out} onChange={handleChange} className="border p-2 rounded" />
-                  {/* <input type="text" name="wheels_off" placeholder="Wheels Off" value={formData.wheels_off} onChange={handleChange} className="border p-2 rounded" /> */}
-                </div>
-              </div>
-
-              {/* Arrival Details */}
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  {/* Destination Airport dropdown */}
-                  <select name="destination_airport" value={formData.destination_airport} onChange={handleChange} className="border p-2 rounded">
-                    <option value="">Destination Airport</option>
-                    <option value="ATL">LAX</option>
-                    <option value="SFO">SFO - San Francisco</option>
-                    <option value="MIA">MIA - Miami</option>
-                  </select>
-
-                  <input type="text" name="scheduled_arrival" placeholder="Scheduled Arrival" value={formData.scheduled_arrival} onChange={handleChange} className="border p-2 rounded" />
-                  {/* <input type="text" name="arrival_time" placeholder="Arrival Time" value={formData.arrival_time} onChange={handleChange} className="border p-2 rounded" /> */}
-                  <input type="text" name="scheduled_time" placeholder="Scheduled Time" value={formData.scheduled_time} onChange={handleChange} className="border p-2 rounded" />
-                  {/* <input type="text" name="elapsed_time" placeholder="Elapsed Time" value={formData.elapsed_time} onChange={handleChange} className="border p-2 rounded" /> */}
-                  {/* <input type="text" name="air_time" placeholder="Air Time" value={formData.air_time} onChange={handleChange} className="border p-2 rounded" /> */}
-                  <input type="text" name="distance" placeholder="Distance" value={formData.distance} onChange={handleChange} className="border p-2 rounded" />
-                  {/* <input type="text" name="wheels_on" placeholder="Wheels On" value={formData.wheels_on} onChange={handleChange} className="border p-2 rounded" /> */}
-                  {/* <input type="text" name="taxi_in" placeholder="Taxi In" value={formData.taxi_in} onChange={handleChange} className="border p-2 rounded" /> */}
-                </div>
-              </div>
-
-              {/* Delay Information */}
-              {/* <div>
-                <h5 className="text-lg font-semibold text-gray-700 mb-4">Delay Information</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" name="air_system_delay" placeholder="Air System Delay" value={formData.air_system_delay} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="security_delay" placeholder="Security Delay" value={formData.security_delay} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="airline_delay" placeholder="Airline Delay" value={formData.airline_delay} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="late_aircraft_delay" placeholder="Late Aircraft Delay" value={formData.late_aircraft_delay} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="weather_delay" placeholder="Weather Delay" value={formData.weather_delay} onChange={handleChange} className="border p-2 rounded" />
-                </div>
-              </div> */}
-
-              {/* Geolocation */}
-              {/* <div>
-                <h5 className="text-lg font-semibold text-gray-700 mb-4">Geolocation</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" name="origin_lat" placeholder="Origin Latitude" value={formData.origin_lat} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="origin_lon" placeholder="Origin Longitude" value={formData.origin_lon} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="dest_lat" placeholder="Destination Latitude" value={formData.dest_lat} onChange={handleChange} className="border p-2 rounded" />
-                  <input type="text" name="dest_lon" placeholder="Destination Longitude" value={formData.dest_lon} onChange={handleChange} className="border p-2 rounded" />
-                </div>
-              </div> */}
-
-              {/* Submit Button */}
-              <div class="flex justify-center">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-64 py-2 rounded transition ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"
-                }`}
-              >
-                {loading ? "Predicting..." : "Get Prediction"}
-              </button>
-              </div>
-            </form>
-
-            {/* Loader / Result */}
-            {loading && (
-              <div className="mt-6 flex justify-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-              </div>
-            )}
-
-            {!loading && prediction !== null && (
-            <div
-              className={`mt-6 p-4 border rounded-lg text-center ${
-                prediction <= 15 ? "bg-green-100 border-green-400" : "bg-red-100 border-red-400"
-              }`}
-            >
-              {prediction <= 15 ? (
-                <p className="text-lg font-semibold text-green-800">✅ Flight is on time</p>
-              ) : (
-                <p className="text-lg font-semibold text-red-800">
-                  ⚠️ Flight delayed by {Number(prediction).toFixed(2)} minutes
-                </p>
-              )}
             </div>
-          )}
           </div>
-        </div>
-      )}
-
+        )}
 
         {/* ===== SCHEDULE TAB ===== */}
         {activeTab === "schedule" && (
