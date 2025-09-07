@@ -501,7 +501,12 @@ import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle,
   Info,
   CheckCircle, } from "lucide-react";
 import FlightScheduleSection from "../components/FlightScheduleSection";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const isProd = import.meta.env.MODE === "production";
+
+// ✅ Prod: "" (same-origin)  |  Dev: http://localhost:5001
+const API_URL = isProd ? "" : (import.meta.env.VITE_API_URL || "http://localhost:5001");
+
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // ---------- helper: get current user from /api/auth/me (JWT cookie) ----------

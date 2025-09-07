@@ -4,7 +4,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login as loginAction } from "../redux/authSlice";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const isProd = import.meta.env.MODE === "production";
+const API_URL = isProd ? "" : (import.meta.env.VITE_API_URL || "http://localhost:5001");
+
 
 export default function SignIn() {
   const navigate = useNavigate();
