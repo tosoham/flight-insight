@@ -657,7 +657,7 @@ const handleChange = (e) => {
       };
 
       // Call backend
-      const res = await fetch(`${BACKEND_URL}/predict`, {
+      const res = await fetch(`${BACKEND_URL}/predict-mojo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -665,7 +665,8 @@ const handleChange = (e) => {
 
       // Handle backend response { "Arrival Delay": value }
       const data = await res.json();
-      setPrediction(data?.["Arrival Delay"] ?? "No result");
+      setPrediction(data?.["Arrival Delay (MOJO)"] ?? "No result");
+      console.log("Prediction result", data);
 
     } catch (err) {
       console.error("Prediction error", err);
