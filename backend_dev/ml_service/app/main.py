@@ -89,7 +89,7 @@ app = FastAPI()
 
 # Load analytics dataset once at startup
 try:
-    analytics_df = pd.read_parquet("/app/data/flights_processed_for_analytics.parquet")
+    analytics_df = pd.read_parquet("/app/flights_processed_for_analytics.parquet")
 except Exception:
     analytics_df = None
 
