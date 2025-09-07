@@ -22,6 +22,7 @@ if config.config_file_name is not None:
 
 # Import your models
 from databases import models
+#from backend_dev.ml_service.databases import models  # or the correct path
 target_metadata = models.Base.metadata
 
 
