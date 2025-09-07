@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Eye, EyeOff, Plane, Mail, Lock, User, UserPlus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const isProd = import.meta.env.MODE === "production";
+const API_URL = isProd ? "" : (import.meta.env.VITE_API_URL || "http://localhost:5001");
+
 import { useDispatch } from "react-redux";
 import { signupSuccess } from "../redux/authSlice";
 
