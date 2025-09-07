@@ -61,3 +61,23 @@ class Booking(Base):
     # Relationships
     customer = relationship("Customer", back_populates="bookings")
     flight = relationship("Flight", back_populates="bookings")
+
+class final_db_schema(Base):
+    __tablename__ = "final_db_schema"
+
+    FLIGHT_NUMBER = Column(Integer, primary_key=True)
+    YEAR = Column(Integer, nullable=False)
+    MONTH = Column(Integer, nullable=False)
+    DAY = Column(Integer, nullable=False)
+    DAY_OF_WEEK = Column(Integer, nullable=False)
+    AIRLINE = Column(VARCHAR(20), nullable=False)
+    ORIGIN_AIRPORT = Column(VARCHAR(20), nullable=False)
+    DESTINATION_AIRPORT = Column(VARCHAR(20), nullable=False)
+    SCHEDULED_DEPARTURE = Column(Integer, nullable=False)
+    DEPARTURE_TIME = Column(Integer, nullable=False)
+    DEPARTURE_DELAY = Column(Integer, nullable=False)
+    TAXI_OUT = Column(Integer)
+    SCHEDULED_TIME = Column(Integer)
+    DISTANCE = Column(Integer)
+    SCHEDULED_ARRIVAL = Column(Integer, nullable=False)
+    ARRIVAL_DELAY_PREDICTED = Column(DECIMAL(20,15), nullable=False)

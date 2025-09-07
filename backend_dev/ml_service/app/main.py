@@ -186,7 +186,8 @@ from pydantic import BaseModel
 import h2o
 import pandas as pd
 import os
-from databases.models import Flight
+#from databases.models import Flight
+from databases.models import Flight, final_db_schema as FinalDBSchema
 from dotenv import load_dotenv
 import tempfile
 import subprocess
@@ -366,6 +367,51 @@ async def predict_from_csv(file: UploadFile = File(...)):
                 predictions.append({"error": f"Failed to predict for flight {features.FLIGHT_NUMBER}"})
 
     return {"predictions": predictions}
+
+
+# New endpoint: store-into-db
+from fastapi import status
+
+@app.post("/store-into-db", status_code=status.HTTP_201_CREATED)
+async def store_into_db(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    """
+    Accepts a CSV, predicts delay for each row, and stores all info + prediction in final_db_schema table.
+    """
+    contents = await file.read()
+    df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
+
+    required_columns = [
+        "YEAR", "MONTH", "DAY", "DAY_OF_WEEK", "AIRLINE", "FLIGHT_NUMBER",
+        "ORIGIN_AIRPORT", "DESTINATION_AIRPORT",
+        "SCHEDULED_DEPARTURE", "DEPARTURE_TIME", "DEPARTURE_DELAY",
+        "TAXI_OUT", "SCHEDULED_TIME", "DISTANCE", "SCHEDULED_ARRIVAL"
+    ]
+    missing = [c for c in required_columns if c not in df.columns]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing columns: {', '.join(missing)}")
+
+    stored = []
+    async with httpx.AsyncClient() as client:
+        for _, row in df.iterrows():
+            features = FlightFeatures(**row.to_dict())
+            resp = await client.post("http://localhost:8000/predict-mojo", json=features.model_dump())
+            if resp.status_code == 200 and "Arrival Delay (MOJO)" in resp.json():
+                prediction = resp.json()["Arrival Delay (MOJO)"]
+            else:
+                prediction = None
+
+            # Prepare DB record
+            record_dict = row.to_dict()
+            record_dict["ARRIVAL_DELAY_PREDICTED"] = prediction
+
+            # Create FinalDBSchema instance
+            db_record = FinalDBSchema(**record_dict)
+            db.add(db_record)
+            stored.append({"FLIGHT_NUMBER": record_dict.get("FLIGHT_NUMBER"), "ARRIVAL_DELAY_PREDICTED": prediction})
+
+        await db.commit()
+
+    return {"stored": stored, "count": len(stored)}
 
 
 @app.get("/fetch-flight")
