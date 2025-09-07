@@ -75,7 +75,7 @@ def preprocess_to_h2o(df: pd.DataFrame) -> H2OFrame:
     hf = h2o.H2OFrame(df)
 
     return hf
-"""from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 import requests
 from sqlalchemy.orm import Session
 from databases import models
@@ -84,7 +84,124 @@ import datetime
 
 #models.Base.metadata.create_all(bind=engine)
 
+# Only one FastAPI app instance
 app = FastAPI()
+
+# Load analytics dataset once at startup
+try:
+    analytics_df = pd.read_parquet("/app/data/flights_processed_for_analytics.parquet")
+except Exception:
+    analytics_df = None
+
+# ...existing code...
+
+# Analytics endpoint
+@app.get("/display")
+def display(airline: str):
+    if analytics_df is None:
+        return {"error": "Analytics dataset not loaded"}
+
+    df = analytics_df
+    results = {}
+
+    # 1. Top 3 Worst Flight Paths
+    worst_routes = (
+        df[df["AIRLINE"] == airline]
+        .groupby(["ORIGIN_AIRPORT", "DESTINATION_AIRPORT"])["ARRIVAL_DELAY"]
+        .mean()
+        .reset_index()
+        .sort_values("ARRIVAL_DELAY", ascending=False)
+        .head(3)
+    )
+    results["worst_routes"] = worst_routes.rename(
+        columns={"ARRIVAL_DELAY": "avg_arrival_delay"}
+    ).assign(route=lambda x: x["ORIGIN_AIRPORT"] + " → " + x["DESTINATION_AIRPORT"])[
+        ["route", "avg_arrival_delay"]
+    ].to_dict(orient="records")
+
+    # 2. Top 3 Worst Flights
+    worst_flights = (
+        df[df["AIRLINE"] == airline]
+        .groupby("FLIGHT_NUMBER")["ARRIVAL_DELAY"]
+        .mean()
+        .reset_index()
+        .sort_values("ARRIVAL_DELAY", ascending=False)
+        .head(3)
+    )
+    results["worst_flights"] = worst_flights.rename(
+        columns={"ARRIVAL_DELAY": "avg_arrival_delay", "FLIGHT_NUMBER": "flight"}
+    ).to_dict(orient="records")
+
+    # 3. Average Delay by Day of Week
+    delay_by_day = (
+        df[df["AIRLINE"] == airline]
+        .groupby("DAY_OF_WEEK")["ARRIVAL_DELAY"]
+        .mean()
+        .reset_index()
+        .sort_values("DAY_OF_WEEK")
+    )
+    day_map = {
+        1: "Monday", 2: "Tuesday", 3: "Wednesday",
+        4: "Thursday", 5: "Friday", 6: "Saturday", 7: "Sunday"
+    }
+    delay_by_day["day"] = delay_by_day["DAY_OF_WEEK"].map(day_map)
+    results["delay_by_day"] = delay_by_day.rename(
+        columns={"ARRIVAL_DELAY": "avg_arrival_delay"}
+    )[["day", "avg_arrival_delay"]].to_dict(orient="records")
+
+    # 4. Top 10 Airports by Avg Arrival Delay
+    top_airports = (
+        df[df["AIRLINE"] == airline]
+        .groupby("DESTINATION_AIRPORT")["ARRIVAL_DELAY"]
+        .mean()
+        .reset_index()
+        .sort_values("ARRIVAL_DELAY", ascending=False)
+        .head(10)
+    )
+    results["top_airports"] = top_airports.rename(
+        columns={"ARRIVAL_DELAY": "avg_arrival_delay", "DESTINATION_AIRPORT": "airport"}
+    ).to_dict(orient="records")
+
+    # 5. Top 10 Losing Routes (money impact approx: delay × count)
+    losing_routes = (
+        df[df["AIRLINE"] == airline]
+        .groupby(["ORIGIN_AIRPORT", "DESTINATION_AIRPORT"])["ARRIVAL_DELAY"]
+        .agg(["mean", "count"])
+        .reset_index()
+    )
+    losing_routes["impact"] = losing_routes["mean"] * losing_routes["count"]
+    losing_routes = losing_routes.sort_values("impact", ascending=False).head(10)
+    results["losing_routes"] = losing_routes.assign(
+        route=lambda x: x["ORIGIN_AIRPORT"] + " → " + x["DESTINATION_AIRPORT"]
+    )[["route", "impact"]].to_dict(orient="records")
+
+    # 6. Vulnerability by Day of Week
+    results["vulnerable_days"] = results["delay_by_day"]
+
+    # 7. Scatter: Taxi-Out vs Arrival Delay
+    scatter_data = (
+        df[df["AIRLINE"] == airline][["TAXI_OUT", "ARRIVAL_DELAY"]]
+        .dropna()
+        .sample(n=min(500, len(df[df["AIRLINE"] == airline])), random_state=42)
+    )
+    results["taxiout_vs_delay"] = scatter_data.rename(
+        columns={"TAXI_OUT": "taxi_out", "ARRIVAL_DELAY": "arrival_delay"}
+    ).to_dict(orient="records")
+
+    # 8. Hour of Day vs Avg Delay
+    df["hour_of_day"] = (df["SCHEDULED_DEPARTURE"] // 100).astype(int)
+    hour_delay = (
+        df[df["AIRLINE"] == airline]
+        .groupby("hour_of_day")["ARRIVAL_DELAY"]
+        .mean()
+        .reset_index()
+        .sort_values("hour_of_day")
+    )
+    results["hour_vs_delay"] = hour_delay.rename(
+        columns={"ARRIVAL_DELAY": "avg_arrival_delay", "hour_of_day": "hour"}
+    ).to_dict(orient="records")
+
+    return results
 
 def get_db():
     db = SessionLocal()
@@ -174,9 +291,9 @@ def store_flight(flight_number: str, db: Session = Depends(get_db)):
         "booking_id": new_booking.booking_id,
         "departure_delay": departure_delay,
         "arrival_delay": arrival_delay,
-    }"""
+    }
 
-from fastapi import FastAPI, Depends, HTTPException, UploadFile,File
+from fastapi import Depends, HTTPException, UploadFile,File
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select
 import httpx
@@ -228,7 +345,7 @@ async def get_db():
         yield session
 
 
-app = FastAPI()
+# Remove duplicate app instance
 
 """AVIATIONSTACK_API_KEY = "c68947135ac031af2d89c0419904f0fb"
 
