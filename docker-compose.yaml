@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     container_name: frontend_container
     ports:
-      - "3000:80"
+      - "5173:80"
     environment:
       - VITE_BACKEND_URL=http://localhost:8000
     depends_on:
@@ -29,7 +29,7 @@ services:
       context: ./backend_dev
       dockerfile: Dockerfile
     ports:
-      - "3001:80"
+      - "5001:5001"
     env_file:
       - ./.env
     depends_on:
