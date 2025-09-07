@@ -657,6 +657,8 @@ const handleChange = (e) => {
       };
 
       // Call backend
+
+      
       const res = await fetch(`${BACKEND_URL}/predict-mojo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
