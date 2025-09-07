@@ -10,6 +10,10 @@ COPY ./model ./model
 COPY requirements.txt ./
 
 COPY ./databases ./databases
+
+COPY ./alembic.ini ./
+
+COPY ./init_db.py ./
 # Use OpenJDK 21 for Debian trixie/arm64 (Linux compatible)
 RUN apt-get update && apt-get install -y openjdk-21-jre
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
