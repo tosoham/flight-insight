@@ -559,8 +559,27 @@ export default function Airlines() {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Handler for CSV upload (to be implemented)
+  const handleCSVUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    // TODO: Implement CSV parsing and batch prediction logic
+    alert(`Selected file: ${file.name}`);
+  };
+
   // 🔹 Handle form updates (null/NaN → 0)
   // 🔹 Handle form updates with date validation
+const NUMERIC_FIELDS = [
+  "flight_number",
+  "scheduled_departure",
+  "departure_time",
+  "departure_delay",
+  "taxi_out",
+  "scheduled_time",
+  "distance",
+  "scheduled_arrival",
+];
+
 const handleChange = (e) => {
   const { name, value } = e.target;
 
@@ -587,66 +606,91 @@ const handleChange = (e) => {
     const formatted = [dd, mm, yyyy].filter(Boolean).join("/");
 
     setFormData((prev) => ({ ...prev, [name]: formatted }));
+  } else if (NUMERIC_FIELDS.includes(name)) {
+    // Only allow numbers (and optional minus for negative values)
+    if (value === "" || value === "-") {
+      setFormData((prev) => ({ ...prev, [name]: "" }));
+      return;
+    }
+    if (!/^-?\d*$/.test(value)) return;
+    setFormData((prev) => ({ ...prev, [name]: value.replace(/^0+(?!$)/, "") }));
   } else {
-    setFormData((prev) => ({ ...prev, [name]: value || "0" }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }
 };
 
 
   // 🔹 Submit handler
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setPrediction(null);
+    e.preventDefault();
+    setLoading(true);
+    setPrediction(null);
 
-  try {
-    // Parse date (dd/mm/yyyy)
-    const [day, month, year] = (formData.date || "").split("/").map((x) => parseInt(x, 10));
+    try {
+      // Parse date (dd/mm/yyyy)
+      const [day, month, year] = (formData.date || "").split("/").map((x) => parseInt(x, 10));
 
-    // Helper to safely parse numbers (NaN → 0)
-    const toInt = (val) => {
-      const num = parseInt(val, 10);
-      return isNaN(num) ? 0 : num;
-    };
+      // Helper to safely parse numbers (NaN → 0)
+      const toInt = (val) => {
+        const num = parseInt(val, 10);
+        return isNaN(num) ? 0 : num;
+      };
 
-    // Build backend payload with UPPERCASE keys
-    const payload = {
-      YEAR: toInt(year),
-      MONTH: toInt(month),
-      DAY: toInt(day),
-      DAY_OF_WEEK: toInt(formData.day_of_week),
-      AIRLINE: formData.airline || "",
-      FLIGHT_NUMBER: toInt(formData.flight_number),
-      TAIL_NUMBER: formData.tail_number || "",
-      ORIGIN_AIRPORT: formData.origin_airport || "",
-      DESTINATION_AIRPORT: formData.destination_airport || "",
-      SCHEDULED_DEPARTURE: toInt(formData.scheduled_departure),
-      DEPARTURE_TIME: toInt(formData.departure_time),
-      DEPARTURE_DELAY: toInt(formData.departure_delay),
-      TAXI_OUT: toInt(formData.taxi_out),
-      SCHEDULED_TIME: toInt(formData.scheduled_time),
-      DISTANCE: toInt(formData.distance),
-      SCHEDULED_ARRIVAL: toInt(formData.scheduled_arrival),
-    };
+      // Build backend payload with UPPERCASE keys
+      const payload = {
+        YEAR: toInt(year),
+        MONTH: toInt(month),
+        DAY: toInt(day),
+        DAY_OF_WEEK: toInt(formData.day_of_week),
+        AIRLINE: formData.airline || "",
+        FLIGHT_NUMBER: toInt(formData.flight_number),
+        TAIL_NUMBER: formData.tail_number || "",
+        ORIGIN_AIRPORT: formData.origin_airport || "",
+        DESTINATION_AIRPORT: formData.destination_airport || "",
+        SCHEDULED_DEPARTURE: toInt(formData.scheduled_departure),
+        DEPARTURE_TIME: toInt(formData.departure_time),
+        DEPARTURE_DELAY: toInt(formData.departure_delay),
+        TAXI_OUT: toInt(formData.taxi_out),
+        SCHEDULED_TIME: toInt(formData.scheduled_time),
+        DISTANCE: toInt(formData.distance),
+        SCHEDULED_ARRIVAL: toInt(formData.scheduled_arrival),
+      };
 
-    // Call backend
-    const res = await fetch(`${BACKEND_URL}/predict`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      // Call backend
+      const res = await fetch(`${BACKEND_URL}/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    // Handle backend response { "Arrival Delay": value }
-    const data = await res.json();
-    setPrediction(data?.["Arrival Delay"] ?? "No result");
+      // Handle backend response { "Arrival Delay": value }
+      const data = await res.json();
+      setPrediction(data?.["Arrival Delay"] ?? "No result");
 
-  } catch (err) {
-    console.error("Prediction error", err);
-    setPrediction("Error occurred, try again");
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (err) {
+      console.error("Prediction error", err);
+      setPrediction("Error occurred, try again");
+    } finally {
+      setLoading(false);
+      // Reset form after prediction (always)
+      setFormData({
+        date: "",
+        airline: "",
+        day_of_week: "",
+        flight_number: "",
+        tail_number: "",
+        origin_airport: "",
+        destination_airport: "",
+        scheduled_departure: "",
+        departure_time: "",
+        departure_delay: "",
+        taxi_out: "",
+        scheduled_time: "",
+        distance: "",
+        scheduled_arrival: "",
+      });
+    }
+  };
 
   const isSubscribed = !!user?.subscribed; // plan-aware gating
 
@@ -1034,10 +1078,24 @@ const handleChange = (e) => {
         {activeTab === "prediction" && (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 p-6">
             <div className="max-w-4xl mx-auto">
-
               <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
+                {/* --- CSV Upload Button --- */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+                  <h2 className="text-3xl font-bold text-gray-800">AI Flight Delay Prediction</h2>
+                  <label className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow hover:from-blue-700 hover:to-indigo-700 cursor-pointer transition-all duration-200">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                    </svg>
+                    Upload CSV
+                    <input
+                      type="file"
+                      accept=".csv"
+                      className="hidden"
+                      onChange={handleCSVUpload}
+                    />
+                  </label>
+                </div>
                 <div className="space-y-8">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-6">AI Flight Delay Prediction</h2>
                   {/* Flight Information Section */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
