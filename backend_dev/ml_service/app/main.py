@@ -239,7 +239,7 @@ async def fetch_flight(flight_number: str):
     data = response.json()
     return data"""
 
-AVIATIONSTACK_API_KEY = "c68947135ac031af2d89c0419904f0fb"
+AVIATIONSTACK_API_KEY = os.getenv("AVIATIONSTACK_API_KEY")
 BASE_URL = "http://api.aviationstack.com/v1/flights"
 
 # CORS setup (so frontend can call backend)
