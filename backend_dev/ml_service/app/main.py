@@ -2,6 +2,7 @@ import numpy as np
 import holidays
 from h2o import H2OFrame
 import pandas as pd
+import io
 
 def preprocess_to_h2o(df: pd.DataFrame) -> H2OFrame:
     """
@@ -175,7 +176,7 @@ def store_flight(flight_number: str, db: Session = Depends(get_db)):
         "arrival_delay": arrival_delay,
     }"""
 
-from fastapi import FastAPI, Depends, HTTPException, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, UploadFile,File
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select
 import httpx
@@ -330,7 +331,41 @@ def predict(features: FlightFeatures):
             pass
 
 
+@app.post("/predict-from-csv")
+async def predict_from_csv(file: UploadFile = File(...)):
+    """
+    Accepts a CSV with multiple rows of flight data,
+    predicts delay for each row using the MOJO model,
+    and returns all predictions.
+    """
+    # Read CSV
+    contents = await file.read()
+    df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
 
+    # Required columns
+    required_columns = [
+        "YEAR", "MONTH", "DAY", "DAY_OF_WEEK", "AIRLINE", "FLIGHT_NUMBER",
+        "ORIGIN_AIRPORT", "DESTINATION_AIRPORT",
+        "SCHEDULED_DEPARTURE", "DEPARTURE_TIME", "DEPARTURE_DELAY",
+        "TAXI_OUT", "SCHEDULED_TIME", "DISTANCE", "SCHEDULED_ARRIVAL"
+    ]
+    missing = [c for c in required_columns if c not in df.columns]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing columns: {', '.join(missing)}")
+
+    predictions = []
+
+    # Loop rows and call predict-mojo
+    async with httpx.AsyncClient() as client:
+        for _, row in df.iterrows():
+            features = FlightFeatures(**row.to_dict())
+            resp = await client.post("http://localhost:8000/predict-mojo", json=features.model_dump())
+            if resp.status_code == 200:
+                predictions.append(resp.json())
+            else:
+                predictions.append({"error": f"Failed to predict for flight {features.FLIGHT_NUMBER}"})
+
+    return {"predictions": predictions}
 
 
 @app.get("/fetch-flight")
