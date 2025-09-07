@@ -25,6 +25,7 @@ services:
     depends_on:
       - db
   node-backend:
+    container_name: node_backend
     build:
       context: ./backend_dev
       dockerfile: Dockerfile
@@ -37,13 +38,21 @@ services:
       - frontend
 
   ml-service:
+    container_name: ml_service
     build:
       context: ./backend_dev/ml_service
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./.env
+    depends_on:
+      - db
 
 volumes:
   postgres_data:

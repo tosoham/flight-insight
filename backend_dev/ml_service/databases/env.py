@@ -6,9 +6,15 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from alembic import context
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Alembic Config object
 config = context.config
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:madhurima@localhost:5433/flightdb")
 
 # Logging
 if config.config_file_name is not None:
