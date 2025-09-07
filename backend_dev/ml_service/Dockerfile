@@ -15,7 +15,7 @@ COPY ./alembic.ini ./
 
 COPY ./init_db.py ./
 
-COPY ./data/flights_processed_for_analytics.parquet ./data/flights_processed_for_analytics.parquet
+COPY ./dataset/flights_processed_for_analytics.parquet /app/flights_processed_for_analytics.parquet
 # Use OpenJDK 21 for Debian trixie/arm64 (Linux compatible)
 RUN apt-get update && apt-get install -y openjdk-21-jre
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
