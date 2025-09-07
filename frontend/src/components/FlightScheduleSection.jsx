@@ -27,56 +27,53 @@ export default function FlightScheduleSection({ initialDate = new Date() }) {
     () => [
       {
         id: "1",
-        flightNo: "AI-676",
-        airline: "Air India",
-        from: "DEL",
-        to: "BOM",
+        flightNo: "UA-1012",
+        airline: "United Airlines",
+        from: "JFK",
+        to: "LAX",
         schedDep: parseISO(nowISO).toISOString(),
-        schedArr: addMinutes(parseISO(nowISO), 125).toISOString(),
-        estDep: addMinutes(parseISO(nowISO), 10).toISOString(),
-        estArr: addMinutes(parseISO(nowISO), 140).toISOString(),
-        gate: "A12",
+        schedArr: addMinutes(parseISO(nowISO), 370).toISOString(),
+        estDep: addMinutes(parseISO(nowISO), 15).toISOString(),
+        estArr: addMinutes(parseISO(nowISO), 385).toISOString(),
         status: "DELAYED",
-        delayMin: 10,
+        delayMin: 15,
         delayReason: "Late inbound aircraft",
       },
       {
         id: "2",
-        flightNo: "6E-312",
-        airline: "IndiGo",
-        from: "CCU",
-        to: "BLR",
-        schedDep: addMinutes(parseISO(nowISO), 35).toISOString(),
+        flightNo: "AA-223",
+        airline: "American Airlines",
+        from: "ORD",
+        to: "DFW",
+        schedDep: addMinutes(parseISO(nowISO), 40).toISOString(),
         schedArr: addMinutes(parseISO(nowISO), 160).toISOString(),
-        estDep: addMinutes(parseISO(nowISO), 35).toISOString(),
+        estDep: addMinutes(parseISO(nowISO), 40).toISOString(),
         estArr: addMinutes(parseISO(nowISO), 160).toISOString(),
         status: "BOARDING",
-        gate: "B07",
         delayMin: 0,
       },
       {
         id: "3",
-        flightNo: "SG-101",
-        airline: "SpiceJet",
-        from: "BLR",
-        to: "HYD",
-        schedDep: addMinutes(parseISO(nowISO), -20).toISOString(),
-        schedArr: addMinutes(parseISO(nowISO), 55).toISOString(),
+        flightNo: "DL-789",
+        airline: "Delta Air Lines",
+        from: "ATL",
+        to: "MIA",
+        schedDep: addMinutes(parseISO(nowISO), -25).toISOString(),
+        schedArr: addMinutes(parseISO(nowISO), 85).toISOString(),
         estDep: addMinutes(parseISO(nowISO), -10).toISOString(),
-        estArr: addMinutes(parseISO(nowISO), 65).toISOString(),
+        estArr: addMinutes(parseISO(nowISO), 100).toISOString(),
         status: "IN_AIR",
         delayMin: 0,
       },
       {
         id: "4",
-        flightNo: "UK-909",
-        airline: "Vistara",
-        from: "BOM",
-        to: "DEL",
-        schedDep: addMinutes(parseISO(nowISO), 90).toISOString(),
-        schedArr: addMinutes(parseISO(nowISO), 220).toISOString(),
+        flightNo: "WN-4567",
+        airline: "Southwest Airlines",
+        from: "SFO",
+        to: "LAS",
+        schedDep: addMinutes(parseISO(nowISO), 120).toISOString(),
+        schedArr: addMinutes(parseISO(nowISO), 210).toISOString(),
         status: "ON_TIME",
-        gate: "C03",
         delayMin: 0,
       },
     ],
@@ -296,7 +293,6 @@ function FlightsTable({ flights }) {
             <th className="text-left p-3">Status</th>
             <th className="text-left p-3">Delay</th>
             {/* <th className="text-left p-3">Delay Reason</th> */}
-            <th className="text-left p-3">Gate</th>
           </tr>
         </thead>
         <tbody>
@@ -338,7 +334,6 @@ function FlightsTable({ flights }) {
                 {/* <td className="p-3 text-xs">
                   {f.status === "DELAYED" && f.delayReason ? f.delayReason : "—"}
                 </td> */}
-                <td className="p-3">{f.gate || "—"}</td>
               </motion.tr>
             ))}
           </AnimatePresence>
@@ -389,7 +384,7 @@ function FlightsAnalysis({ flights }) {
               </p>
               <p>Sched: {fmt(f.schedDep)} → {fmt(f.schedArr)}</p>
               <p>Est/Act: {fmt(f.estDep)} → {fmt(f.estArr)}</p>
-              <p>Gate: <span className="font-medium">{f.gate || "—"}</span></p>
+              {/* Gate removed as per new requirements */}
               <p>
                 Delay:{" "}
                 <span className={isDelayed ? "text-red-600 font-semibold" : ""}>
