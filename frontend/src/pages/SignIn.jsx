@@ -5,8 +5,7 @@ import { useDispatch } from "react-redux";
 import { login as loginAction } from "../redux/authSlice";
 
 const isProd = import.meta.env.MODE === "production";
-const API_URL = isProd ? "" : (import.meta.env.VITE_API_URL || "http://localhost:5001");
-
+const API_URL = "http://13.235.19.124:5173";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -40,63 +39,62 @@ export default function SignIn() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setErrorMsg("");
-  setLoading(true);
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
 
-  try {
-    // 1) Login (sets httpOnly cookie)
-    const res = await fetch(`${API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-      }),
-    });
+    try {
+      // 1) Login (sets httpOnly cookie)
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
-      const msg =
-        data?.message === "Invalid credentials"
-          ? "Invalid email or password."
-          : data?.message === "Missing fields"
-          ? "Please enter both email and password."
-          : data?.message || "Sign in failed. Please try again.";
-      setErrorMsg(msg);
-      return;
+      if (!res.ok) {
+        const msg =
+          data?.message === "Invalid credentials"
+            ? "Invalid email or password."
+            : data?.message === "Missing fields"
+            ? "Please enter both email and password."
+            : data?.message || "Sign in failed. Please try again.";
+        setErrorMsg(msg);
+        return;
+      }
+
+      //Fetch session info (/check-auth)
+      const fetchInfo = await fetch(`${API_URL}/api/auth/check-auth`, {
+        credentials: "include",
+      });
+      if (!fetchInfo.ok) {
+        setErrorMsg("Login succeeded but session not found. Please try again.");
+        return;
+      }
+      const session = await fetchInfo.json(); // { role, user }
+
+      // 3) Update Redux (slice will persist to sessionStorage)
+      dispatch(loginAction(session));
+
+      // 4) Role-based redirect (adjust paths to your routes)
+      const redirect =
+        session?.role === "airline"
+          ? "/airlines"
+          : session?.role === "passenger"
+          ? "/passengers"
+          : "/";
+      navigate(redirect, { replace: true });
+    } catch (err) {
+      setErrorMsg("Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-
-    //Fetch session info (/check-auth)
-    const fetchInfo = await fetch(`${API_URL}/api/auth/check-auth`, {
-      credentials: "include",
-    });
-    if (!fetchInfo.ok) {
-      setErrorMsg("Login succeeded but session not found. Please try again.");
-      return;
-    }
-    const session = await fetchInfo.json(); // { role, user }
-
-    // 3) Update Redux (slice will persist to sessionStorage)
-    dispatch(loginAction(session));
-
-    // 4) Role-based redirect (adjust paths to your routes)
-    const redirect =
-      session?.role === "airline"
-        ? "/airlines"
-        : session?.role === "passenger"
-        ? "/passengers"
-        : "/";
-    navigate(redirect, { replace: true });
-  } catch (err) {
-    setErrorMsg("Network error. Please check your connection and try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
@@ -127,7 +125,10 @@ export default function SignIn() {
           <div className="w-24 h-10 bg-white rounded-full"></div>
           <div className="w-18 h-7 bg-white rounded-full ml-6 -mt-6"></div>
         </div>
-        <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-10"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
             <linearGradient id="flightPath" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#60A5FA" stopOpacity="0" />
@@ -135,11 +136,33 @@ export default function SignIn() {
               <stop offset="100%" stopColor="#60A5FA" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d="M 0,200 Q 300,100 600,180 T 1200,160" stroke="url(#flightPath)" strokeWidth="2" fill="none" strokeDasharray="10,5">
-            <animate attributeName="stroke-dashoffset" values="0;-100" dur="8s" repeatCount="indefinite" />
+          <path
+            d="M 0,200 Q 300,100 600,180 T 1200,160"
+            stroke="url(#flightPath)"
+            strokeWidth="2"
+            fill="none"
+            strokeDasharray="10,5"
+          >
+            <animate
+              attributeName="stroke-dashoffset"
+              values="0;-100"
+              dur="8s"
+              repeatCount="indefinite"
+            />
           </path>
-          <path d="M 0,400 Q 400,300 800,380 T 1200,360" stroke="url(#flightPath)" strokeWidth="2" fill="none" strokeDasharray="15,8">
-            <animate attributeName="stroke-dashoffset" values="0;-120" dur="10s" repeatCount="indefinite" />
+          <path
+            d="M 0,400 Q 400,300 800,380 T 1200,360"
+            stroke="url(#flightPath)"
+            strokeWidth="2"
+            fill="none"
+            strokeDasharray="15,8"
+          >
+            <animate
+              attributeName="stroke-dashoffset"
+              values="0;-120"
+              dur="10s"
+              repeatCount="indefinite"
+            />
           </path>
         </svg>
       </div>
@@ -152,7 +175,9 @@ export default function SignIn() {
             <Plane className="w-8 h-8 text-white transform rotate-45" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-blue-200">Sign in to your Flight Insight account</p>
+          <p className="text-blue-200">
+            Sign in to your Flight Insight account
+          </p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -166,7 +191,10 @@ export default function SignIn() {
           <form onSubmit={handleSubmit}>
             {/* Email */}
             <div className="mb-6">
-              <label htmlFor="email" className="block text-white font-medium mb-2">
+              <label
+                htmlFor="email"
+                className="block text-white font-medium mb-2"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -186,7 +214,10 @@ export default function SignIn() {
 
             {/* Password */}
             <div className="mb-6">
-              <label htmlFor="password" className="block text-white font-medium mb-2">
+              <label
+                htmlFor="password"
+                className="block text-white font-medium mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -206,7 +237,11 @@ export default function SignIn() {
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-white transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -222,7 +257,10 @@ export default function SignIn() {
                 />
                 <span className="text-sm">Remember me</span>
               </label>
-              <Link to="/forgot" className="text-sm text-blue-300 hover:text-white transition-colors">
+              <Link
+                to="/forgot"
+                className="text-sm text-blue-300 hover:text-white transition-colors"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -245,7 +283,10 @@ export default function SignIn() {
         <div className="text-center mt-6">
           <p className="text-blue-200">
             Don&apos;t have an account?{" "}
-            <Link to="/signup" className="text-white font-semibold hover:text-blue-300 transition-colors">
+            <Link
+              to="/signup"
+              className="text-white font-semibold hover:text-blue-300 transition-colors"
+            >
               Create one now
             </Link>
           </p>
@@ -255,13 +296,29 @@ export default function SignIn() {
       {/* Custom Styles */}
       <style jsx>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(45deg); }
-          50% { transform: translateY(-20px) rotate(45deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(45deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(45deg);
+          }
         }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delay { animation: float 6s ease-in-out infinite; animation-delay: -2s; }
-        .animate-float-delay-2 { animation: float 8s ease-in-out infinite; animation-delay: -4s; }
-        .animate-float-delay-3 { animation: float 7s ease-in-out infinite; animation-delay: -1s; }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delay {
+          animation: float 6s ease-in-out infinite;
+          animation-delay: -2s;
+        }
+        .animate-float-delay-2 {
+          animation: float 8s ease-in-out infinite;
+          animation-delay: -4s;
+        }
+        .animate-float-delay-3 {
+          animation: float 7s ease-in-out infinite;
+          animation-delay: -1s;
+        }
       `}</style>
     </div>
   );

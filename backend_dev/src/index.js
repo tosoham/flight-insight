@@ -21,14 +21,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 // CORS only for local dev (5173/3000). In prod we use same-origin "/api".
-if (!isProd) {
-  app.use(
+app.use(
     cors({
-      origin: ["http://localhost:5173", "http://localhost:3000"],
+      origin: ["http://localhost:5173", "http://localhost:3000", "http://13.235.19.124:5173"],
       credentials: true,
     })
   );
-}
 
 // health check (handy for deploy tests)
 app.get("/api/healthz", (req, res) => res.send("ok"));
