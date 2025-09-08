@@ -214,85 +214,6 @@ AVIATIONSTACK_API_KEY = "c68947135ac031af2d89c0419904f0fb"
 BASE_URL = "http://api.aviationstack.com/v1/flights"
 
 
-@app.get("/fetch-flight")
-def fetch_flight(flight_number: str):
-    url = f"{BASE_URL}?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
-    response = requests.get(url)
-    
-    if response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Error fetching data from AviationStack API")
-
-    data = response.json()
-    if "data" not in data or len(data["data"]) == 0:
-        raise HTTPException(status_code=404, detail="Flight not found")
-
-    return data["data"][0]
-
-    
-@app.post("/store-flight")
-def store_flight(flight_number: str, db: Session = Depends(get_db)):
-    url = f"{BASE_URL}?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Error fetching data from AviationStack API")
-
-    data = response.json()
-    if "data" not in data or len(data["data"]) == 0:
-        raise HTTPException(status_code=404, detail="Flight not found")
-
-    flight_data = data["data"][0]
-
-    new_flight = models.Flight(
-        flight_number=flight_data.get("flight", {}).get("iata", "N/A"),
-        airline=flight_data.get("airline", {}).get("name", "N/A"),
-        departure_airport=flight_data.get("departure", {}).get("airport", "N/A"),
-        arrival_airport=flight_data.get("arrival", {}).get("airport", "N/A"),
-        departure_date=flight_data.get("departure", {}).get("estimated"),
-        arrival_date=flight_data.get("arrival", {}).get("estimated"),
-    )
-    db.add(new_flight)
-    db.commit()
-    db.refresh(new_flight)
-
-    customer_data = flight_data.get("passenger")  
-    new_customer = None
-    if customer_data:
-        new_customer = models.Customer(
-            first_name=customer_data.get("first_name", "Unknown"),
-            last_name=customer_data.get("last_name", "Unknown"),
-            email=customer_data.get("email", None),
-            phone_number=customer_data.get("phone", None),
-            date_of_birth=customer_data.get("dob", None),
-            gender=customer_data.get("gender", None),
-        )
-        db.add(new_customer)
-        db.commit()
-        db.refresh(new_customer)
-
-    departure_delay = flight_data.get("departure", {}).get("delay") 
-    arrival_delay = flight_data.get("arrival", {}).get("delay")     
-
-    new_booking = models.Booking(
-        customer_id=new_customer.customer_id if new_customer else None,
-        flight_id=new_flight.flight_id,
-        booking_date=datetime.datetime.now(),
-        seat_number=None,  # Not provided by API
-        status="scheduled",
-    )
-    db.add(new_booking)
-    db.commit()
-    db.refresh(new_booking)
-
-    return {
-        "message": "Flight & booking stored successfully",
-        "flight_id": new_flight.flight_id,
-        "customer_id": new_customer.customer_id if new_customer else None,
-        "booking_id": new_booking.booking_id,
-        "departure_delay": departure_delay,
-        "arrival_delay": arrival_delay,
-    }
-
 from fastapi import Depends, HTTPException, UploadFile,File
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select
@@ -345,18 +266,6 @@ async def get_db():
         yield session
 
 
-# Remove duplicate app instance
-
-"""AVIATIONSTACK_API_KEY = "c68947135ac031af2d89c0419904f0fb"
-
-
-@app.get("/fetch-flight/{flight_number}")
-async def fetch_flight(flight_number: str):
-    url = f"http://api.aviationstack.com/v1/flights?access_key={AVIATIONSTACK_API_KEY}&flight_number={flight_number}"
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-    data = response.json()
-    return data"""
 
 AVIATIONSTACK_API_KEY = os.getenv("AVIATIONSTACK_API_KEY")
 BASE_URL = "http://api.aviationstack.com/v1/flights"
