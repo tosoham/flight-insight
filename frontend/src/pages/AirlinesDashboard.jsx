@@ -515,6 +515,7 @@ const API_URL = isProd ? "" : (import.meta.env.VITE_API_URL || "http://localhost
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const VITE_ML_API_URL = import.meta.env.VITE_ML_API_URL; 
 
 // ---------- helper: get current user from /api/auth/me (JWT cookie) ----------
 async function fetchMe() {
@@ -682,7 +683,7 @@ export default function Airlines() {
       // Call backend
 
 
-      const res = await fetch(`${BACKEND_URL}/predict-mojo`, {
+      const res = await fetch(`/ml/predict-mojo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

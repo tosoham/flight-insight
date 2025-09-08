@@ -1,5 +1,4 @@
 services:
-
   db:
     image: postgres:15-alpine
     container_name: postgres_container
@@ -13,29 +12,32 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # ✅ Frontend served via Nginx
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./web/Dockerfile
     container_name: frontend_container
     ports:
-      - "5173:80"
-    environment:
-      - VITE_BACKEND_URL=http://localhost:8000
+      - "80:80"
+    env_file: ./.env               
     depends_on:
-      - db
+      - node-backend
+    restart: unless-stopped
+
   node-backend:
     container_name: node_backend
     build:
       context: ./backend_dev
       dockerfile: Dockerfile
-    ports:
-      - "5001:5001"
+    expose:
+      - "3000"                  # Changed from 5001 to 3000
     env_file:
       - ./.env
     depends_on:
       - ml-service
-      - frontend
+      - db
+    restart: unless-stopped
 
   ml-service:
     container_name: ml_service
