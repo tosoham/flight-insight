@@ -81,6 +81,7 @@ from sqlalchemy.orm import Session
 from databases import models
 from databases.database import SessionLocal, engine
 import datetime
+import polars as pl
 
 #models.Base.metadata.create_all(bind=engine)
 
@@ -88,20 +89,20 @@ import datetime
 app = FastAPI()
 
 # Load analytics dataset once at startup
-try:
-    analytics_df = pd.read_parquet("/app/flights_processed_for_analytics.parquet")
-except Exception:
-    analytics_df = None
 
 # ...existing code...
 
 # Analytics endpoint
 @app.get("/display")
 def display(airline: str):
-    if analytics_df is None:
+    try:
+        analytics_lf = pl.scan_parquet("./app/flights_processed_for_analytics_reduced.parquet")
+    except Exception:
+        analytics_lf = None
+    if analytics_lf is None:
         return {"error": "Analytics dataset not loaded"}
 
-    df = analytics_df
+    df = analytics_lf.collect().to_pandas()
     results = {}
 
     # 1. Top 3 Worst Flight Paths
@@ -203,12 +204,12 @@ def display(airline: str):
 
     return results
 
-def get_db():
+"""def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        db.close()"""
 
 AVIATIONSTACK_API_KEY = "c68947135ac031af2d89c0419904f0fb"
 BASE_URL = "http://api.aviationstack.com/v1/flights"
