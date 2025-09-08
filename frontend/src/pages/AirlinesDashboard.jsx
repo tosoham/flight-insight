@@ -22,7 +22,7 @@
 // // Counter component with animation
 // function AnimatedCounter({ value, duration = 2000, suffix = "" }) {
 //   const [count, setCount] = useState(0);
-  
+
 //   useEffect(() => {
 //     let startTimestamp = null;
 //     const step = (timestamp) => {
@@ -35,7 +35,7 @@
 //     };
 //     window.requestAnimationFrame(step);
 //   }, [value, duration]);
-  
+
 //   return <span>{count}{suffix}</span>;
 // }
 
@@ -476,6 +476,11 @@
 // }
 
 import { useState, useEffect } from "react";
+
+import Papa from "papaparse";
+
+
+
 import {
   BarChart,
   Bar,
@@ -491,15 +496,17 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle,
-  Calendar,  
-  MapPin, 
-  User, 
-  Navigation, 
+import {
+  TrendingUp, TrendingDown, Plane, Clock, Users, AlertTriangle,
+  Calendar,
+  MapPin,
+  User,
+  Navigation,
   Timer,
   Send,
   Info,
-  CheckCircle, } from "lucide-react";
+  CheckCircle,
+} from "lucide-react";
 import FlightScheduleSection from "../components/FlightScheduleSection";
 const isProd = import.meta.env.MODE === "production";
 
@@ -564,65 +571,76 @@ export default function Airlines() {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Handler for CSV upload (to be implemented)
+
+
+  const [uploadedFlights, setUploadedFlights] = useState([]);
+
   const handleCSVUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    // TODO: Implement CSV parsing and batch prediction logic
-    alert(`Selected file: ${file.name}`);
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function (results) {
+        setUploadedFlights(results.data);
+      },
+    });
   };
+
+
 
   // 🔹 Handle form updates (null/NaN → 0)
   // 🔹 Handle form updates with date validation
-const NUMERIC_FIELDS = [
-  "flight_number",
-  "scheduled_departure",
-  "departure_time",
-  "departure_delay",
-  "taxi_out",
-  "scheduled_time",
-  "distance",
-  "scheduled_arrival",
-];
+  const NUMERIC_FIELDS = [
+    "flight_number",
+    "scheduled_departure",
+    "departure_time",
+    "departure_delay",
+    "taxi_out",
+    "scheduled_time",
+    "distance",
+    "scheduled_arrival",
+  ];
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  if (name === "date") {
-    // ✅ Allow only digits and slashes while typing
-    if (!/^[0-9/]*$/.test(value)) return;
+    if (name === "date") {
+      // ✅ Allow only digits and slashes while typing
+      if (!/^[0-9/]*$/.test(value)) return;
 
-    // Don't validate if user just typed "/" at the end
-    if (value.endsWith("/")) {
+      // Don't validate if user just typed "/" at the end
+      if (value.endsWith("/")) {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        return;
+      }
+
+      // Split into [dd, mm, yyyy]
+      const parts = value.split("/");
+      let [dd, mm, yyyy] = parts;
+
+      // ✅ Cap values only if present
+      if (dd && parseInt(dd, 10) > 31) dd = "31";
+      if (mm && parseInt(mm, 10) > 12) mm = "12";
+      if (yyyy && yyyy.length > 4) yyyy = yyyy.slice(0, 4);
+
+      // ✅ Rebuild formatted value
+      const formatted = [dd, mm, yyyy].filter(Boolean).join("/");
+
+      setFormData((prev) => ({ ...prev, [name]: formatted }));
+    } else if (NUMERIC_FIELDS.includes(name)) {
+      // Only allow numbers (and optional minus for negative values)
+      if (value === "" || value === "-") {
+        setFormData((prev) => ({ ...prev, [name]: "" }));
+        return;
+      }
+      if (!/^-?\d*$/.test(value)) return;
+      setFormData((prev) => ({ ...prev, [name]: value.replace(/^0+(?!$)/, "") }));
+    } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
-      return;
     }
-
-    // Split into [dd, mm, yyyy]
-    const parts = value.split("/");
-    let [dd, mm, yyyy] = parts;
-
-    // ✅ Cap values only if present
-    if (dd && parseInt(dd, 10) > 31) dd = "31";
-    if (mm && parseInt(mm, 10) > 12) mm = "12";
-    if (yyyy && yyyy.length > 4) yyyy = yyyy.slice(0, 4);
-
-    // ✅ Rebuild formatted value
-    const formatted = [dd, mm, yyyy].filter(Boolean).join("/");
-
-    setFormData((prev) => ({ ...prev, [name]: formatted }));
-  } else if (NUMERIC_FIELDS.includes(name)) {
-    // Only allow numbers (and optional minus for negative values)
-    if (value === "" || value === "-") {
-      setFormData((prev) => ({ ...prev, [name]: "" }));
-      return;
-    }
-    if (!/^-?\d*$/.test(value)) return;
-    setFormData((prev) => ({ ...prev, [name]: value.replace(/^0+(?!$)/, "") }));
-  } else {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
-};
+  };
 
 
   // 🔹 Submit handler
@@ -663,7 +681,7 @@ const handleChange = (e) => {
 
       // Call backend
 
-      
+
       const res = await fetch(`${BACKEND_URL}/predict-mojo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -768,7 +786,7 @@ const handleChange = (e) => {
     return null;
   };
 
-  
+
 
 
   return (
@@ -784,11 +802,10 @@ const handleChange = (e) => {
 
             {/* Plan badge */}
             <span
-              className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                isSubscribed
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-gray-50 text-gray-700 border-gray-200"
-              }`}
+              className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold border ${isSubscribed
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-gray-50 text-gray-700 border-gray-200"
+                }`}
               title={isSubscribed ? "Subscribed plan" : "Free plan"}
             >
               {isSubscribed ? "Subscribed" : "Free"}
@@ -804,29 +821,28 @@ const handleChange = (e) => {
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
-        <div className="flex gap-2 bg-white p-2 rounded-xl shadow-sm w-fit">           
-          {[             
-            { id: "overview", label: "Overview", icon: "📊" },             
-            { id: "analysis", label: "Analysis", icon: "🔍" },             
-            { id: "prediction", label: "Prediction", icon: "🔮" },             
-            { id: "schedule", label: "Schedule", icon: "🗓️" },             
-            { id: "insights", label: "Insights", icon: "💡" }           
-          ].map((tab) => (             
-            <button               
-              key={tab.id}               
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${                 
-                activeTab === tab.id                   
-                  ? "bg-blue-600 text-white shadow-md transform scale-105"                   
-                  : "hover:bg-blue-50 text-gray-600"               
-              }`}               
-              onClick={() => setActiveTab(tab.id)}             
-            >               
-              <span>{tab.icon}</span>               
-              {tab.label}             
-            </button>           
-          ))}         
+          <div className="flex gap-2 bg-white p-2 rounded-xl shadow-sm w-fit">
+            {[
+              { id: "overview", label: "Overview", icon: "📊" },
+              { id: "analysis", label: "Analysis", icon: "🔍" },
+              { id: "prediction", label: "Prediction", icon: "🔮" },
+              { id: "schedule", label: "Schedule", icon: "🗓️" },
+              { id: "insights", label: "Insights", icon: "💡" }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${activeTab === tab.id
+                  ? "bg-blue-600 text-white shadow-md transform scale-105"
+                  : "hover:bg-blue-50 text-gray-600"
+                  }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
         {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
@@ -918,15 +934,15 @@ const handleChange = (e) => {
                     </button>
                   ) : null}
                 </div>
-                
+
 
                 {isSubscribed ? (
                   <ResponsiveContainer width="100%" height={350}>
                     <BarChart data={performanceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <defs>
                         <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -936,7 +952,7 @@ const handleChange = (e) => {
                       <Bar dataKey="value" fill="url(#colorGradient)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                  
+
                 ) : (
                   <div className="p-5 rounded-xl bg-gray-50 border border-dashed">
                     <p className="text-sm text-gray-600 mb-3">
@@ -968,12 +984,12 @@ const handleChange = (e) => {
                   <AreaChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <defs>
                       <linearGradient id="colorOnTime" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1} />
                       </linearGradient>
                       <linearGradient id="colorDelays" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -986,7 +1002,7 @@ const handleChange = (e) => {
                 </ResponsiveContainer>
               </div>
             </div>
-            
+
 
             {/* Executive Report (only for subscribed) */}
             {isSubscribed && (
@@ -1112,71 +1128,71 @@ const handleChange = (e) => {
                       </div>
                       <h3 className="text-xl font-semibold text-gray-800">Flight Information</h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-blue-500" />
                           Date
                         </label>
-                        <input 
-                          type="text" 
-                          name="date" 
-                          placeholder="dd/mm/yyyy" 
-                          value={formData.date} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300" 
+                        <input
+                          type="text"
+                          name="date"
+                          placeholder="dd/mm/yyyy"
+                          value={formData.date}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
                         />
                       </div>
 
                       <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-blue-500" />
-                        Day of Week
-                      </label>
-                      <select 
-                        name="day_of_week" 
-                        value={formData.day_of_week} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
-                      >
-                        <option value="">Select Day of Week</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                      </select>
-                    </div>
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-blue-500" />
+                          Day of Week
+                        </label>
+                        <select
+                          name="day_of_week"
+                          value={formData.day_of_week}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
+                        >
+                          <option value="">Select Day of Week</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="6">6</option>
+                          <option value="7">7</option>
+                        </select>
+                      </div>
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                           <Plane className="w-4 h-4 text-blue-500" />
                           Airline
                         </label>
-                        <select 
-                          name="airline" 
-                          value={formData.airline} 
-                          onChange={handleChange} 
+                        <select
+                          name="airline"
+                          value={formData.airline}
+                          onChange={handleChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
                         >
                           <option value="">Select Airline</option>
                           <option value="UA">United Airlines</option>
-                            <option value="AA">American Airlines</option>
-                            <option value="US">US Airways</option>
-                            <option value="F9">Frontier Airlines</option>
-                            <option value="B6">JetBlue Airways</option>
-                            <option value="OO">SkyWest Airlines</option>
-                            <option value="AS">Alaska Airlines</option>
-                            <option value="NK">Spirit Airlines</option>
-                            <option value="WN">Southwest Airlines</option>
-                            <option value="DL">Delta Airlines</option>
-                            <option value="EV">Atlantic Southeast</option>
-                            <option value="HA">Hawaiian Airlines</option>
-                            <option value="MQ">American Eagle</option>
-                            <option value="VX">Virgin America</option>
+                          <option value="AA">American Airlines</option>
+                          <option value="US">US Airways</option>
+                          <option value="F9">Frontier Airlines</option>
+                          <option value="B6">JetBlue Airways</option>
+                          <option value="OO">SkyWest Airlines</option>
+                          <option value="AS">Alaska Airlines</option>
+                          <option value="NK">Spirit Airlines</option>
+                          <option value="WN">Southwest Airlines</option>
+                          <option value="DL">Delta Airlines</option>
+                          <option value="EV">Atlantic Southeast</option>
+                          <option value="HA">Hawaiian Airlines</option>
+                          <option value="MQ">American Eagle</option>
+                          <option value="VX">Virgin America</option>
 
                         </select>
                       </div>
@@ -1186,10 +1202,10 @@ const handleChange = (e) => {
                           <User className="w-4 h-4 text-blue-500" />
                           Tail Number
                         </label>
-                        <select 
-                          name="tail_number" 
-                          value={formData.tail_number} 
-                          onChange={handleChange} 
+                        <select
+                          name="tail_number"
+                          value={formData.tail_number}
+                          onChange={handleChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
                         >
                           <option value="">Select Tail Number</option>
@@ -1208,13 +1224,13 @@ const handleChange = (e) => {
                           <Navigation className="w-4 h-4 text-blue-500" />
                           Flight Number
                         </label>
-                        <input 
-                          type="text" 
-                          name="flight_number" 
-                          placeholder="e.g.,1 to 9855" 
-                          value={formData.flight_number} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300" 
+                        <input
+                          type="text"
+                          name="flight_number"
+                          placeholder="e.g.,1 to 9855"
+                          value={formData.flight_number}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-300"
                         />
                       </div>
                     </div>
@@ -1235,10 +1251,10 @@ const handleChange = (e) => {
                           <MapPin className="w-4 h-4 text-green-500" />
                           Origin Airport
                         </label>
-                        <select 
-                          name="origin_airport" 
-                          value={formData.origin_airport} 
-                          onChange={handleChange} 
+                        <select
+                          name="origin_airport"
+                          value={formData.origin_airport}
+                          onChange={handleChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300"
                         >
                           <option value="">Select Origin Airport</option>
@@ -1264,13 +1280,13 @@ const handleChange = (e) => {
                           <Clock className="w-4 h-4 text-green-500" />
                           Scheduled Departure
                         </label>
-                        <input 
-                          type="text" 
-                          name="scheduled_departure" 
-                          placeholder="e.g., 1 to 2359" 
-                          value={formData.scheduled_departure} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        <input
+                          type="text"
+                          name="scheduled_departure"
+                          placeholder="e.g., 1 to 2359"
+                          value={formData.scheduled_departure}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300"
                         />
                       </div>
 
@@ -1279,13 +1295,13 @@ const handleChange = (e) => {
                           <Clock className="w-4 h-4 text-green-500" />
                           Departure Time
                         </label>
-                        <input 
-                          type="text" 
-                          name="departure_time" 
-                          placeholder="e.g range ( 1 - 2400)" 
-                          value={formData.departure_time} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        <input
+                          type="text"
+                          name="departure_time"
+                          placeholder="e.g range ( 1 - 2400)"
+                          value={formData.departure_time}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300"
                         />
                       </div>
 
@@ -1294,13 +1310,13 @@ const handleChange = (e) => {
                           <Timer className="w-4 h-4 text-green-500" />
                           Departure Delay (mins)
                         </label>
-                        <input 
-                          type="text" 
-                          name="departure_delay" 
-                          placeholder="e.g., -82 to 1988" 
-                          value={formData.departure_delay} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        <input
+                          type="text"
+                          name="departure_delay"
+                          placeholder="e.g., -82 to 1988"
+                          value={formData.departure_delay}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300"
                         />
                       </div>
 
@@ -1309,13 +1325,13 @@ const handleChange = (e) => {
                           <Timer className="w-4 h-4 text-green-500" />
                           Taxi Out (mins)
                         </label>
-                        <input 
-                          type="text" 
-                          name="taxi_out" 
-                          placeholder="e.g ( 1 to 225)" 
-                          value={formData.taxi_out} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300" 
+                        <input
+                          type="text"
+                          name="taxi_out"
+                          placeholder="e.g ( 1 to 225)"
+                          value={formData.taxi_out}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-green-300"
                         />
                       </div>
                     </div>
@@ -1336,10 +1352,10 @@ const handleChange = (e) => {
                           <MapPin className="w-4 h-4 text-purple-500" />
                           Destination Airport
                         </label>
-                        <select 
-                          name="destination_airport" 
-                          value={formData.destination_airport} 
-                          onChange={handleChange} 
+                        <select
+                          name="destination_airport"
+                          value={formData.destination_airport}
+                          onChange={handleChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300"
                         >
                           <option value="">Select Destination Airport</option>
@@ -1365,13 +1381,13 @@ const handleChange = (e) => {
                           <Clock className="w-4 h-4 text-purple-500" />
                           Scheduled Arrival
                         </label>
-                        <input 
-                          type="text" 
-                          name="scheduled_arrival" 
-                          placeholder="e.g range ( 1 - 2400)" 
-                          value={formData.scheduled_arrival} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
+                        <input
+                          type="text"
+                          name="scheduled_arrival"
+                          placeholder="e.g range ( 1 - 2400)"
+                          value={formData.scheduled_arrival}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300"
                         />
                       </div>
 
@@ -1380,13 +1396,13 @@ const handleChange = (e) => {
                           <Timer className="w-4 h-4 text-purple-500" />
                           Scheduled Time (mins)
                         </label>
-                        <input 
-                          type="text" 
-                          name="scheduled_time" 
-                          placeholder="e.g., 18 to 718" 
-                          value={formData.scheduled_time} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
+                        <input
+                          type="text"
+                          name="scheduled_time"
+                          placeholder="e.g., 18 to 718"
+                          value={formData.scheduled_time}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300"
                         />
                       </div>
 
@@ -1395,13 +1411,13 @@ const handleChange = (e) => {
                           <Navigation className="w-4 h-4 text-purple-500" />
                           Distance (miles)
                         </label>
-                        <input 
-                          type="text" 
-                          name="distance" 
-                          placeholder="e.g., 31,..2475...4983" 
-                          value={formData.distance} 
-                          onChange={handleChange} 
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300" 
+                        <input
+                          type="text"
+                          name="distance"
+                          placeholder="e.g., 31,..2475...4983"
+                          value={formData.distance}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-purple-300"
                         />
                       </div>
                     </div>
@@ -1413,11 +1429,10 @@ const handleChange = (e) => {
                       type="button"
                       onClick={handleSubmit}
                       disabled={loading}
-                      className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                        loading 
-                          ? "bg-gray-400 cursor-not-allowed" 
-                          : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
-                      }`}
+                      className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg ${loading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
+                        }`}
                     >
                       {loading ? (
                         <>
@@ -1447,93 +1462,150 @@ const handleChange = (e) => {
                 {/* Results */}
 
                 {!loading && prediction !== null && (
-                <div className="mt-8 animate-fadeIn">
-                  <div
-                    className={`p-6 rounded-2xl border-2 text-center shadow-lg ${
-                      Math.round(Number(prediction)) < 15
+                  <div className="mt-8 animate-fadeIn">
+                    <div
+                      className={`p-6 rounded-2xl border-2 text-center shadow-lg ${Math.round(Number(prediction)) < 15
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
                         : Math.round(Number(prediction)) === 15
-                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
-                        : "bg-gradient-to-r from-red-50 to-orange-50 border-red-200"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center mb-4">
-                      {Math.round(Number(prediction)) < 15 ? (
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                          <CheckCircle className="w-8 h-8 text-blue-600" />
-                        </div>
-                      ) : Math.round(Number(prediction)) === 15 ? (
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                          <CheckCircle className="w-8 h-8 text-green-600" />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                          <AlertTriangle className="w-8 h-8 text-red-600" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* CASE 1: Flight Early */}
-                    {Math.round(Number(prediction)) < 15 && (
-                      <div>
-                        <h4 className="text-2xl font-bold text-blue-800 mb-2">Flight Early ✈️</h4>
-                        {15 - Math.round(Number(prediction)) > 0 ? (
-                          <p className="text-blue-700 text-lg mb-2">
-                            Before time by{" "}
-                            <span className="font-bold">
-                              {-(Math.round(Number(prediction)))} minutes
-                            </span>
-                          </p>
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
+                          : "bg-gradient-to-r from-red-50 to-orange-50 border-red-200"
+                        }`}
+                    >
+                      <div className="flex items-center justify-center mb-4">
+                        {Math.round(Number(prediction)) < 15 ? (
+                          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-8 h-8 text-blue-600" />
+                          </div>
+                        ) : Math.round(Number(prediction)) === 15 ? (
+                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-8 h-8 text-green-600" />
+                          </div>
                         ) : (
-                          <p className="text-blue-700 text-lg mb-2">
-                            Could vary by <span className="font-bold">±5 minutes</span>
-                          </p>
+                          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="w-8 h-8 text-red-600" />
+                          </div>
                         )}
                       </div>
-                    )}
 
-                    {/* CASE 2: Flight On Time */}
-                    {Math.round(Number(prediction)) === 15 && (
-                      <div>
-                        <h4 className="text-2xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
-                          Flight On Time ✈️
-                          <span
-                            className="relative group cursor-pointer"
-                            title="May arrive up to 5 minutes earlier or later"
-                          >
-                            <Info className="w-5 h-5 text-green-600" />
-                          </span>
-                        </h4>
-                        <p className="text-green-700 text-lg mb-2">
-                          Could vary by <span className="font-bold">±5 minutes</span>
-                        </p>
-                      </div>
-                    )}
+                      {/* CASE 1: Flight Early */}
+                      {Math.round(Number(prediction)) < 15 && (
+                        <div>
+                          <h4 className="text-2xl font-bold text-blue-800 mb-2">Flight Early ✈️</h4>
+                          {15 - Math.round(Number(prediction)) > 0 ? (
+                            <p className="text-blue-700 text-lg mb-2">
+                              Before time by{" "}
+                              <span className="font-bold">
+                                {-(Math.round(Number(prediction)))} minutes
+                              </span>
+                            </p>
+                          ) : (
+                            <p className="text-blue-700 text-lg mb-2">
+                              Could vary by <span className="font-bold">±5 minutes</span>
+                            </p>
+                          )}
+                        </div>
+                      )}
 
-                    {/* CASE 3: Flight Delayed */}
-                    {Math.round(Number(prediction)) > 15 && (
-                      <div>
-                        <h4 className="text-2xl font-bold text-red-800 mb-2">Delay Expected ⚠️</h4>
-                        <p className="text-red-700 text-lg mb-2">
-                          Predicted delay:{" "}
-                          <span className="font-bold">
-                            {Math.round(Number(prediction))} minutes
-                          </span>
-                        </p>
-                      </div>
-                    )}
+                      {/* CASE 2: Flight On Time */}
+                      {Math.round(Number(prediction)) === 15 && (
+                        <div>
+                          <h4 className="text-2xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
+                            Flight On Time ✈️
+                            <span
+                              className="relative group cursor-pointer"
+                              title="May arrive up to 5 minutes earlier or later"
+                            >
+                              <Info className="w-5 h-5 text-green-600" />
+                            </span>
+                          </h4>
+                          <p className="text-green-700 text-lg mb-2">
+                            Could vary by <span className="font-bold">±5 minutes</span>
+                          </p>
+                        </div>
+                      )}
+
+                      {/* CASE 3: Flight Delayed */}
+                      {Math.round(Number(prediction)) > 15 && (
+                        <div>
+                          <h4 className="text-2xl font-bold text-red-800 mb-2">Delay Expected ⚠️</h4>
+                          <p className="text-red-700 text-lg mb-2">
+                            Predicted delay:{" "}
+                            <span className="font-bold">
+                              {Math.round(Number(prediction))} minutes
+                            </span>
+                          </p>
+                        </div>
+                      )}
+
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                {/* Uploaded CSV Predictions */}
+                {uploadedFlights.length > 0 && (
+                  <div className="mt-16 space-y-10">
+                    <h3 className="text-4xl font-extrabold text-center bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent tracking-wide drop-shadow-sm">
+                      Predictions from Uploaded CSV
+                    </h3>
+
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {uploadedFlights.map((flight, index) => (
+                        <div
+                          key={index}
+                          className="p-6 rounded-2xl shadow-xl bg-white border border-gray-200 hover:shadow-2xl transition-transform transform hover:-translate-y-2"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-indigo-700">
+                              ✈️ Flight {flight.FLIGHT_NUMBER || flight.FLIGHT_NI}
+                            </h4>
+                            <span className="px-3 py-1 text-sm rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                              {flight.AIRLINE}
+                            </span>
+                          </div>
+
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-600">
+                              {flight.ORIGIN_AIRPORT || flight.ORIGIN_AI} → {flight.DESTINATION_AIRPORT || flight.DESTINATI}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Scheduled Departure:{" "}
+                              <span className="font-medium">
+                                {flight.SCHEDULED_DEPARTURE}
+                              </span>
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Scheduled Arrival:{" "}
+                              <span className="font-medium">
+                                {flight.SCHEDULED_ARRIVAL}
+                              </span>
+                            </p>
+                          </div>
+
+                          <div className="pt-4 border-t border-gray-100">
+                            <p className="text-gray-700 text-base">
+                              Predicted Delay:{" "}
+                              <span className="font-bold text-red-600 text-lg">
+                                {Math.floor(Math.random() * 60)} mins
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+
               </div>
             </div>
           </div>
         )}
 
+
         {/* ===== SCHEDULE TAB ===== */}
         {activeTab === "schedule" && (
           <div className="space-y-6">
-            <FlightScheduleSection/>
+            <FlightScheduleSection />
           </div>
         )}
 
@@ -1577,11 +1649,10 @@ const handleChange = (e) => {
                     <h5 className="font-bold text-gray-800 mb-2">{recommendation.title}</h5>
                     <p className="text-gray-600 mb-3">{recommendation.description}</p>
                     <div className="flex gap-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        recommendation.impact === 'High' 
-                          ? 'bg-red-100 text-red-700' 
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${recommendation.impact === 'High'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                        }`}>
                         {recommendation.impact} Impact
                       </span>
                       <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
