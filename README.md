@@ -3,7 +3,7 @@
 ## 📌 Overview
 This project is an **AI-powered Flight Delay Prediction System** that predicts the **expected delay duration of flights** using machine learning regression models.  
 
-The system enables airlines to:  
+The system enables airlines to:
 - Estimate potential delays in advance  
 - Optimize flight scheduling and reduce cancellations  
 - Improve passenger satisfaction with proactive communication & rebooking strategies  
@@ -20,28 +20,28 @@ The system enables airlines to:
 ---
 
 ## 🏗️ System Architecture
-1. **Data Sources**  
-   - Historical flight datasets  
-   - Real-time weather feeds  
-   - Operational & airport-level information  
+**Data Sources**
+- Historical flight datasets  
+- Real-time weather feeds  
+- Operational & airport-level information  
 
-2. **Processing Pipeline**  
-   - Data cleaning & preprocessing  
-   - Feature engineering (weather, congestion, seasonal patterns, etc.)  
-   - Regression model training & validation  
+**Processing Pipeline**
+- Data cleaning & preprocessing  
+- Feature engineering (weather, congestion, seasonal patterns, etc.)  
+- Regression model training & validation  
 
-3. **Prediction Layer**  
-   - FastAPI-based ML microservice (`ml_service`)  
-   - Predicts expected delay (in minutes)  
-   - Provides APIs for integration  
+**Prediction Layer**
+- FastAPI-based ML microservice (`ml_service`)  
+- Predicts expected delay (in minutes)  
+- Provides APIs for integration  
 
-4. **Frontend**  
-   - Built with React + Tailwind CSS  
-   - Displays predictions, insights, and dashboards  
+**Frontend**
+- Built with React + Tailwind CSS  
+- Displays predictions, insights, and dashboards  
 
-5. **Deployment**  
-   - Docker & Docker Compose for containerization  
-   - Optionally extendable to Kubernetes  
+**Deployment**
+- Docker & Docker Compose for containerization  
+- Optionally extendable to Kubernetes  
 
 ---
 
@@ -53,38 +53,40 @@ The system enables airlines to:
 ---
 
 ## 🛠️ Tech Stack
-**Languages:** Python, SQL, JavaScript (React)  
-**ML Libraries:** Scikit-learn, XGBoost/LightGBM, Pandas, NumPy  
-**Backend (ML Service):** FastAPI  
-**Frontend:** React + Tailwind CSS  
-**Deployment:** Docker, Docker Compose  
-**Database (optional):** PostgreSQL / SQLite  
+- **Languages:** Python, SQL, JavaScript (React)  
+- **ML Libraries:** Scikit-learn, XGBoost/LightGBM, Pandas, NumPy  
+- **Backend (ML Service):** FastAPI  
+- **Frontend:** React + Tailwind CSS  
+- **Deployment:** Docker, Docker Compose  
+- **Database (optional):** PostgreSQL / SQLite  
 
 ---
 
 ## 📂 Repository Structure
+```plaintext
 📦 flight-insight
-┣ 📂 backend_dev # (optional backend experiments / services)
-┣ 📂 ml_service # Machine Learning microservice
-┃ ┣ 📂 app # FastAPI app
-┃ ┃ ┣ 📄 main.py # Main FastAPI entrypoint
-┃ ┃ ┣ 📄 init.py
-┃ ┣ 📂 databases # DB-related configs (if used)
-┃ ┣ 📂 model # ML models / training scripts
-┃ ┣ 📄 requirements.txt # Python dependencies
-┃ ┣ 📄 Dockerfile # Dockerfile for ML service
-┃ ┣ 📄 alembic.ini # DB migrations (if using Alembic)
-┃ ┗ 📄 init_db.py # DB initialization script
-┣ 📂 frontend # React frontend
-┃ ┣ 📂 src # Components, pages, hooks
-┃ ┣ 📂 public # Static assets
-┃ ┣ 📄 package.json # Frontend dependencies
-┃ ┣ 📄 Dockerfile # Dockerfile for frontend
-┣ 📂 docs # Documentation files
-┣ 📄 .env.example # Example environment variables
-┣ 📄 docker-compose.yml # (optional) service orchestration
-┣ 📄 README.md # Project documentation
-┗ 📄 LICENSE # License information
+ ┣ 📂 backend_dev         # (optional backend experiments / services)
+ ┣ 📂 ml_service          # Machine Learning microservice
+ ┃ ┣ 📂 app               # FastAPI app
+ ┃ ┃ ┣ 📄 main.py         # Main FastAPI entrypoint
+ ┃ ┃ ┣ 📄 __init__.py
+ ┃ ┣ 📂 databases         # DB-related configs (if used)
+ ┃ ┣ 📂 model             # ML models / training scripts
+ ┃ ┣ 📄 requirements.txt  # Python dependencies
+ ┃ ┣ 📄 Dockerfile        # Dockerfile for ML service
+ ┃ ┣ 📄 alembic.ini       # DB migrations (if using Alembic)
+ ┃ ┗ 📄 init_db.py        # DB initialization script
+ ┣ 📂 frontend            # React frontend
+ ┃ ┣ 📂 src               # Components, pages, hooks
+ ┃ ┣ 📂 public            # Static assets
+ ┃ ┣ 📄 package.json      # Frontend dependencies
+ ┃ ┣ 📄 Dockerfile        # Dockerfile for frontend
+ ┣ 📂 docs                # Documentation files
+ ┣ 📄 .env.example        # Example environment variables
+ ┣ 📄 docker-compose.yml  # (optional) service orchestration
+ ┣ 📄 README.md           # Project documentation
+ ┗ 📄 LICENSE             # License information
+
 
 
 ---
