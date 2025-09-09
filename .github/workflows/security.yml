@@ -1,0 +1,179 @@
+name: Security & Code Quality
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  python-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install safety bandit
+
+      - name: Run Safety check for Python dependencies
+        run: |
+          cd backend_dev/ml_service
+          pip install -r requirements.txt
+          safety check
+        continue-on-error: true
+
+      - name: Run Bandit security linter
+        run: |
+          bandit -r backend_dev/ml_service/app/ -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Upload Bandit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  javascript-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Install dependencies and audit
+        run: |
+          cd frontend
+          pnpm install
+          pnpm audit --audit-level moderate
+        continue-on-error: true
+
+      - name: Install backend dependencies and audit
+        run: |
+          cd backend_dev
+          pnpm install
+          pnpm audit --audit-level moderate
+        continue-on-error: true
+
+  docker-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy scanner on Docker images
+        run: |
+          # Build images first
+          docker build -t flight-backend ./backend_dev
+          docker build -t flight-frontend ./frontend
+          docker build -t flight-ml ./backend_dev/ml_service
+          docker build -t flight-web ./web
+          
+          # Scan each image
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd):/root/.cache/ aquasec/trivy:latest image \
+            --exit-code 1 --severity HIGH,CRITICAL flight-backend
+          
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd):/root/.cache/ aquasec/trivy:latest image \
+            --exit-code 1 --severity HIGH,CRITICAL flight-frontend
+          
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd):/root/.cache/ aquasec/trivy:latest image \
+            --exit-code 1 --severity HIGH,CRITICAL flight-ml
+          
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd):/root/.cache/ aquasec/trivy:latest image \
+            --exit-code 1 --severity HIGH,CRITICAL flight-web
+        continue-on-error: true
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python linting tools
+        run: |
+          pip install flake8 black isort mypy
+
+      - name: Run Python code quality checks
+        run: |
+          # Check ML service code quality
+          cd backend_dev/ml_service
+          pip install -r requirements.txt
+          
+          # Black formatting check
+          black --check --diff app/
+          
+          # Import sorting check
+          isort --check-only --diff app/
+          
+          # Flake8 linting
+          flake8 app/ --max-line-length=88 --extend-ignore=E203,W503
+          
+          # MyPy type checking
+          mypy app/ --ignore-missing-imports
+        continue-on-error: true
+
+      - name: Set up Node.js for frontend linting
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Run frontend linting
+        run: |
+          cd frontend
+          pnpm install
+          pnpm run lint
+        continue-on-error: true
+
+      - name: Run backend linting
+        run: |
+          cd backend_dev
+          pnpm install
+          pnpm run lint
+        continue-on-error: true
